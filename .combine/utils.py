@@ -121,7 +121,8 @@ def process_clone_repo(repositories_path, repo_addr_list, target_path_list):
         else:
             print_process("execute bash: git clone " + repo_addr + " " + repo_path)
             git("clone", repo_addr, repo_path)
-            target_path_list.append(repo_path)
+
+        target_path_list.append(repo_path)
 
 
 # get real project path(which has settings.gradle file)
@@ -254,7 +255,7 @@ def parse_dependency_line(line):
     group = None
     artifact = None
     version = None
-    artifact_type = None
+    artifact_type = ''
     suffix = "aar"
 
     while True:
@@ -357,7 +358,7 @@ def handle_process_dependencies(process_dependencies_map, ignored_dependencies_l
     return final_dependencies_list
 
 
-def generate_combine_conf_file(combine_name, combine_project_path, combine_gradle_path,
+def generate_combine_conf_file(combine_name, combine_gradle_path,
                                source_dirs, dependencies_list, res_module_name_list):
     combine_gradle_file = open(combine_gradle_path, "w+")
 
@@ -376,8 +377,6 @@ def generate_combine_conf_file(combine_name, combine_project_path, combine_gradl
     #     combine_gradle_file.write("    resDirs = ")
     #     combine_gradle_file.write(res_dirs.__str__())
     combine_gradle_file.write("\n}")
-
-    project_path = combine_project_path
 
     if (dependencies_list is not None and dependencies_list.__len__() > 0) or (
                 res_module_name_list.__len__() > 0):

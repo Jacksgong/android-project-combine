@@ -111,7 +111,7 @@ for repo_path in repo_path_list:
             if mock_res_path is None:
                 mock_res_path = artifact_id
             if mock_res_path is None:
-                mock_res_path = manifest_application_id.repalce(".", "_")
+                mock_res_path = manifest_application_id.replace(".", "_")
             res_group_map[manifest_application_id] = mock_res_path
 
 final_dependencies_list = handle_process_dependencies(process_dependencies_map, ignored_dependencies_list)
@@ -135,8 +135,8 @@ if not exists(combine_conf_path):
 res_generator = CombineResGenerator()
 res_generator.scan(repositories_path)
 res_module_name_list = res_generator.generate(combine_project_path, res_group_map)
-generate_combine_conf_file(combine_name, combine_project_path, combine_gradle_path, source_dirs,
-                           final_dependencies_list, res_module_name_list)
+generate_combine_conf_file(combine_name, combine_gradle_path, source_dirs, final_dependencies_list,
+                           res_module_name_list)
 
 # generate combine project
 print_process("generate combine project")
