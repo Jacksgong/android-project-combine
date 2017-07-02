@@ -1,0 +1,46 @@
+def toComponentPath(dirs) {
+    def targetDirs = []
+    for (dir in dirs) {
+        targetDirs.add("$componentDir$dir")
+    }
+
+    return targetDirs
+}
+
+android {
+    compileSdkVersion 25
+    buildToolsVersion '25.0.2'
+
+    useLibrary 'org.apache.http.legacy'
+    defaultConfig {
+        minSdkVersion 14
+        targetSdkVersion 25
+        versionCode 1
+        versionName "1.0"
+
+        javaCompileOptions {
+            annotationProcessorOptions {
+                includeCompileClasspath = true
+            }
+        }
+    }
+
+    sourceSets {
+        main {
+            if (javaDirs != null) {
+                java.srcDirs = toComponentPath(javaDirs)
+            }
+
+            if (resDirs != null) {
+                res.srcDirs = toComponentPath(resDirs)
+            }
+
+            manifest.srcFile 'AndroidManifest.xml'
+        }
+    }
+}
+
+dependencies {
+    compile project(':local')
+}
+
