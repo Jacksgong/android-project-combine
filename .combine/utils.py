@@ -293,7 +293,7 @@ def process_dependencies(process_dependencies_map, dependency_line):
         dp_type = "compile"
         dependency_line = dependency_line.replace("testCompile", "compile")
 
-    if dp_type != "provided" and dp_type != "compile":
+    if dp_type != "provided" and dp_type != "compile" and dp_type != "debugCompile" and dp_type != "releaseCompile":
         # on current version we only handle provided and compile.
         return False
 
