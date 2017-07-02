@@ -226,6 +226,9 @@ class CombineResGenerator:
                                                '<View xmlns:android="http://schemas.android.com/apk/res/android"\n' \
                                                '    android:layout_width="match_parent"\n' \
                                                '    android:layout_height="match_parent"/>')
+                        elif r_type == 'menu':
+                            self.mock_res_file(r_module_res_path, r_type, r_name,
+                                               '<menu/>')
                         elif r_type == 'raw':
                             self.mock_res_file(r_module_res_path, r_type, r_name, 'mock')
                         elif r_type == 'color':
