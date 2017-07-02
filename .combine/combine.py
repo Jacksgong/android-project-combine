@@ -133,7 +133,7 @@ if not exists(combine_conf_path):
 
 # scan res
 res_generator = CombineResGenerator()
-res_generator.scan(repositories_path)
+res_generator.scan(repo_path_list)
 res_module_name_list = res_generator.generate(combine_project_path, res_group_map)
 generate_combine_conf_file(combine_name, combine_gradle_path, source_dirs, final_dependencies_list,
                            res_module_name_list)

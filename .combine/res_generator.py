@@ -48,112 +48,116 @@ class CombineResGenerator:
 
         return self.find_package_name_dir_up(abspath(join(parent_path, pardir)))
 
-    def scan(self, root_dir):
+    def scan(self, path_list):
         r_res = self.r_res
 
-        for subdir, dirs, files in walk(root_dir):
-            for file_name in files:
+        for repo_path in path_list:
+            for subdir, dirs, files in walk(repo_path):
+                for file_name in files:
 
-                if file_name == 'attrs.xml' and subdir.endswith('res/values'):
-                    res_path = abspath(join(subdir, pardir))
-                    parent_path = abspath(join(res_path, pardir))
-                    package_name = self.find_package_name_dir_up(parent_path)
-                    self.attrs_res.append([package_name, join(subdir, file_name)])
-                    continue
-
-                if not file_name.endswith('.java'):
-                    continue
-
-                java_path = join(subdir, file_name)
-
-                default_r_package = None
-                in_import_area = False
-                in_coding_area = False
-                java_file = open(java_path, "r")
-                is_first_valid_line = True
-
-                print 'scan R reference on ' + java_path
-                for line in java_file:
-                    strip_line = line.strip()
-                    if strip_line == '' or strip_line == '\n':
+                    if file_name == 'attrs.xml' and subdir.endswith('res/values'):
+                        res_path = abspath(join(subdir, pardir))
+                        parent_path = abspath(join(res_path, pardir))
+                        package_name = self.find_package_name_dir_up(parent_path)
+                        self.attrs_res.append([package_name, join(subdir, file_name)])
                         continue
 
-                    if strip_line.startswith('//') or strip_line.startswith('/*') or strip_line.startswith('*'):
+                    if not file_name.endswith('.java'):
                         continue
 
-                    if is_first_valid_line:
-                        # this line must be the package line.
-                        is_first_valid_line = False
-                        default_r_package = PACKAGE_PATH_RE.search(strip_line).groups()[0]
+                    java_path = join(subdir, file_name)
 
-                    if not in_coding_area:
-                        in_import = strip_line.startswith('import')
-                        if in_import and not in_import_area:
-                            in_import_area = True
+                    default_r_package = None
+                    in_import_area = False
+                    in_coding_area = False
+                    java_file = open(java_path, "r")
+                    is_first_valid_line = True
 
-                        if not in_import and in_import_area:
-                            in_import_area = False
-                            in_coding_area = True
-                    else:
-                        package_name = default_r_package
-                        r_ref_re_s = R_DIR_REF.findall(strip_line)
-                        r_list = list()
-                        if r_ref_re_s is not None:
-                            for package_name, r_type, r_name in r_ref_re_s:
-                                # package_name, r_type, r_name = r_ref_re.groups()
-                                r_list.append([package_name, r_type, r_name])
-                                # print("contain R [" + package_name + ", " + r_type + ", " + r_name + "]")
-
-                        r_ref_re_s = R_REF.findall(strip_line)
-                        if r_ref_re_s is not None:
-                            for r_type, r_name in r_ref_re_s:
-                                # r_type, r_name = r_ref_re.groups()
-                                r_list.append([package_name, r_type, r_name])
-                                # print("contain R [" + r_type + ", " + r_name + "]")
-
-                        if r_list.__len__() <= 0:
-                            # not R line, pass
+                    print 'scan R reference on ' + java_path
+                    for line in java_file:
+                        strip_line = line.strip()
+                        if strip_line == '' or strip_line == '\n':
                             continue
 
-                        handled_r = list()
-                        for package_name, r_type, r_name in r_list:
-                            if package_name is None or r_type is None or r_name is None:
+                        if strip_line.startswith('//') or strip_line.startswith('/*') or strip_line.startswith('*'):
+                            continue
+
+                        if is_first_valid_line:
+                            # this line must be the package line.
+                            is_first_valid_line = False
+                            default_r_package = PACKAGE_PATH_RE.search(strip_line).groups()[0]
+
+                        if not in_coding_area:
+                            in_import = strip_line.startswith('import')
+                            if in_import and not in_import_area:
+                                in_import_area = True
+
+                            if not in_import and in_import_area:
+                                in_import_area = False
+                                in_coding_area = True
+                        else:
+                            package_name = default_r_package
+                            r_ref_re_s = R_DIR_REF.findall(strip_line)
+                            r_list = list()
+                            if r_ref_re_s is not None:
+                                for package_name, r_type, r_name in r_ref_re_s:
+                                    # package_name, r_type, r_name = r_ref_re.groups()
+                                    r_list.append([package_name, r_type, r_name])
+                                    # print("contain R [" + package_name + ", " + r_type + ", " + r_name + "]")
+
+                            r_ref_re_s = R_REF.findall(strip_line)
+                            if r_ref_re_s is not None:
+                                for r_type, r_name in r_ref_re_s:
+                                    # r_type, r_name = r_ref_re.groups()
+                                    r_list.append([package_name, r_type, r_name])
+                                    # print("contain R [" + r_type + ", " + r_name + "]")
+
+                            if r_list.__len__() <= 0:
                                 # not R line, pass
                                 continue
 
-                            if package_name + r_type + r_name in handled_r:
-                                continue
-
-                            handled_r.append(package_name + r_type + r_name)
-
-                            if package_name in IGNORE_PACKAGE_LIST:
-                                # on ignore list
-                                continue
-                            else:
-                                # add if unique
-                                if package_name in r_res:
-                                    unique_type_name_map = r_res[package_name]
-                                else:
-                                    unique_type_name_map = {}
-                                    r_res[package_name] = unique_type_name_map
-
-                                if r_type in unique_type_name_map:
-                                    name_list = unique_type_name_map[r_type]
-                                else:
-                                    name_list = list()
-                                    unique_type_name_map[r_type] = name_list
-
-                                if r_name in name_list:
-                                    # duplicate, pass
+                            handled_r = list()
+                            for package_name, r_type, r_name in r_list:
+                                if package_name is None or r_type is None or r_name is None:
+                                    # not R line, pass
                                     continue
 
-                                # add to list
-                                name_list.append(r_name)
+                                if package_name + r_type + r_name in handled_r:
+                                    continue
 
-                    if in_import_area:
-                        r_import = IMPORT_PACKAGE.search(strip_line)
-                        if r_import is not None:
-                            default_r_package = r_import.groups()[0]
+                                handled_r.append(package_name + r_type + r_name)
+
+                                if package_name in IGNORE_PACKAGE_LIST:
+                                    # on ignore list
+                                    continue
+                                else:
+                                    # add if unique
+                                    if package_name in r_res:
+                                        unique_type_name_map = r_res[package_name]
+                                    else:
+                                        unique_type_name_map = {}
+                                        r_res[package_name] = unique_type_name_map
+
+                                    if r_type in unique_type_name_map:
+                                        name_list = unique_type_name_map[r_type]
+                                    else:
+                                        name_list = list()
+                                        unique_type_name_map[r_type] = name_list
+
+                                    if r_name in name_list:
+                                        # duplicate, pass
+                                        continue
+
+                                    # add to list
+                                    name_list.append(r_name)
+
+                        if in_import_area:
+                            r_import = IMPORT_PACKAGE.search(strip_line)
+                            if r_import is not None:
+                                default_r_package = r_import.groups()[0]
+
+
+
 
     def generate(self, root_dir, packagename_foldername_map):
         r_module_folder_list = list()
