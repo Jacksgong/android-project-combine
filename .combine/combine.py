@@ -7,7 +7,7 @@ from utils import print_error, process_repos_conf, process_clone_repo, print_pro
     print_warn, is_valid_gradle_folder, scan_build_gradle, scan_pom, generate_ignore_matcher, get_default_manifest_path, \
     scan_manifest, process_dependencies, get_default_src_path, handle_process_dependencies, generate_combine_conf_file, \
     generate_combine_manifest_file, generate_combine_gradle_file, generate_mock_res_modules, \
-    generate_setting_gradle_file
+    generate_setting_gradle_file, deeper_source_path
 
 __author__ = 'JacksGong'
 __version__ = '1.0.0'
@@ -120,6 +120,7 @@ print_process("find dependencies: ")
 for dependency in final_dependencies_list:
     print dependency
 
+source_dirs = deeper_source_path(source_dirs)
 print_process("find source dirs: ")
 print source_dirs
 

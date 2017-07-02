@@ -446,5 +446,32 @@ def generate_setting_gradle_file(root_path, project_path, combine_name, res_modu
     combine_setting_gradle_file.close()
 
 
+def deeper_source_path(source_path_list):
+    final_source_path_list = list()
+    for source_root_path in source_path_list:
+        source_list = assemble_source_path(source_root_path)
+        for src in source_list:
+            final_source_path_list.append(src)
+
+    return final_source_path_list
+
+
+def assemble_source_path(source_root_path):
+    # todo support read source path from build.gradle.
+    source_list = list()
+
+    java_path = source_root_path + "/main/java"
+    if exists(java_path) and isdir(java_path):
+        source_list.append(java_path)
+    kotlin_path = source_root_path + "/main/kotlin"
+    if exists(kotlin_path) and isdir(kotlin_path):
+        source_list.append(kotlin_path)
+
+    if source_list.__len__() <= 0:
+        source_list.append(source_root_path)
+
+    return source_list
+
+
 def get_res_mock_module_name(combine_name, res_module_name):
     return combine_name + "-" + res_module_name
