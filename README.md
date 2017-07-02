@@ -8,3 +8,6 @@ You need create `repos.conf` file on project root directory
 
 P.S. You can refer to `/repos.templete.conf`
 
+## TODO LIST
+
+- [] Support aidl
