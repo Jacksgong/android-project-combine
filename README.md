@@ -11,3 +11,4 @@ P.S. You can refer to `/repos.templete.conf`
 ## TODO LIST
 
 - [x] Support aidl
+- [] Support buildConfigField on gradle
