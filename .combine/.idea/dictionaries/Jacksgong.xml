@@ -2,6 +2,7 @@
   <dictionary name="Jacksgong">
     <words>
       <w>addr</w>
+      <w>aidl</w>
       <w>foldername</w>
       <w>gradle</w>
       <w>packagename</w>

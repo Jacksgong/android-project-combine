@@ -7,7 +7,7 @@ from utils import print_error, process_repos_conf, process_clone_repo, print_pro
     print_warn, is_valid_gradle_folder, scan_build_gradle, scan_pom, generate_ignore_matcher, get_default_manifest_path, \
     scan_manifest, process_dependencies, get_default_src_path, handle_process_dependencies, generate_combine_conf_file, \
     generate_combine_manifest_file, generate_combine_gradle_file, generate_mock_res_modules, \
-    generate_setting_gradle_file, deeper_source_path
+    generate_setting_gradle_file, deeper_source_path, get_default_aidl_path
 
 __author__ = 'JacksGong'
 __version__ = '1.0.0'
@@ -57,6 +57,7 @@ process_clone_repo(repositories_path, tmp_repo_addr_list, repo_path_list)
 res_group_map = {}
 process_dependencies_map = {}
 source_dirs = list()
+aidl_dirs = list()
 ignored_dependencies_list = list()
 
 for repo_path in repo_path_list:
@@ -96,8 +97,13 @@ for repo_path in repo_path_list:
 
         # handle src
         src_dir_path = get_default_src_path(module_dir_path)
-        if exists(src_dir_path) and isdir(src_dir_path):
+        if src_dir_path is not None:
             source_dirs.append(src_dir_path)
+
+        # handle aidl
+        aidl_dir_path = get_default_aidl_path(module_dir_path)
+        if aidl_dir_path is not None:
+            aidl_dirs.append(aidl_dir_path)
 
         # handle res
         # R.xxx dependent on manifest application id.
@@ -136,7 +142,7 @@ if not exists(combine_conf_path):
 res_generator = CombineResGenerator()
 res_generator.scan(repo_path_list)
 res_module_name_list = res_generator.generate(combine_project_path, res_group_map)
-generate_combine_conf_file(combine_name, combine_gradle_path, source_dirs, final_dependencies_list,
+generate_combine_conf_file(combine_name, combine_gradle_path, source_dirs, aidl_dirs, final_dependencies_list,
                            res_module_name_list)
 
 # generate combine project

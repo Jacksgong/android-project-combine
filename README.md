@@ -10,4 +10,4 @@ P.S. You can refer to `/repos.templete.conf`
 
 ## TODO LIST
 
-- [] Support aidl
+- [x] Support aidl

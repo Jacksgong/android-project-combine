@@ -332,7 +332,20 @@ def get_default_manifest_path(module_path):
 
 # get default source path
 def get_default_src_path(module_path):
-    return module_path + "/src"
+    src_path = module_path + "/src"
+    if exists(src_path) and isdir(src_path):
+        return src_path
+    return None
+
+
+def get_default_aidl_path(module_path):
+    aidl_path = module_path + "/src/main/aidl"
+    if exists(aidl_path) and isdir(aidl_path):
+        return aidl_path
+    aidl_path = module_path + "/aidl"
+    if exists(aidl_path) and isdir(aidl_path):
+        return aidl_path
+    return None
 
 
 # for generate key for ignore already contained module.
@@ -359,7 +372,7 @@ def handle_process_dependencies(process_dependencies_map, ignored_dependencies_l
 
 
 def generate_combine_conf_file(combine_name, combine_gradle_path,
-                               source_dirs, dependencies_list, res_module_name_list):
+                               source_dirs, aidl_dirs, dependencies_list, res_module_name_list):
     combine_gradle_file = open(combine_gradle_path, "w+")
 
     combine_gradle_file.write("ext {\n")
@@ -370,7 +383,15 @@ def generate_combine_conf_file(combine_name, combine_gradle_path,
         combine_gradle_file.write(source_dirs.__str__())
 
     combine_gradle_file.write("\n")
-    #
+
+    if aidl_dirs is None or aidl_dirs.__len__() <= 0:
+        combine_gradle_file.write("   aidlDirs  = null\n")
+    else:
+        combine_gradle_file.write("    aidlDirs = ")
+        combine_gradle_file.write(aidl_dirs.__str__())
+
+    combine_gradle_file.write("\n")
+
     # if res_dirs is None or res_dirs.__len__() <= 0:
     combine_gradle_file.write("    resDirs = null\n")
     # else:

@@ -31,6 +31,10 @@ android {
                 java.srcDirs = toComponentPath(javaDirs)
             }
 
+            if (aidlDirs != null) {
+                aidl.srcDirs = toComponentPath(aidlDirs)
+            }
+
             if (resDirs != null) {
                 res.srcDirs = toComponentPath(resDirs)
             }
