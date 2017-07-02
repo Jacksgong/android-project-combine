@@ -229,6 +229,9 @@ class CombineResGenerator:
                         elif r_type == 'menu':
                             self.mock_res_file(r_module_res_path, r_type, r_name,
                                                '<menu/>')
+                        elif r_type == 'xml':
+                            self.mock_res_file(r_module_res_path, r_type, r_name,
+                                               '<PreferenceScreen/>')
                         elif r_type == 'raw':
                             self.mock_res_file(r_module_res_path, r_type, r_name, 'mock')
                         elif r_type == 'color':
