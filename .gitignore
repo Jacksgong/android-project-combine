@@ -12,3 +12,4 @@
 /combine-settings.gradle
 /conf
 *.pyc
+.settings
