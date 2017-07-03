@@ -10,6 +10,7 @@ Combine multiple android projects on one Android Studio window.
 - Different Android projects develop together at the one Android Studio window.
 - Find References and Jump into source code rather than .class file on jar package.
 - Jump out of the each projects compile system and using the official compile system.
+- Very light, very fast for each time you want to refresh combine project.
 
 ## HOW TO USE?
 
