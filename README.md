@@ -32,3 +32,4 @@ Open alipay-project-combine on the Android Studio.
 - [x] Support aidl
 - [x] Support buildConfigField on gradle
 - [] Support drawable and mipmap
+- [] Support .combineignore
