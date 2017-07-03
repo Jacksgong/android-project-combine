@@ -73,19 +73,34 @@ class CombineResGenerator:
                     java_file = open(java_path, "r")
                     is_first_valid_line = True
 
+                    is_in_note_area = False
                     print 'scan R reference on ' + java_path
                     for line in java_file:
                         strip_line = line.strip()
                         if strip_line == '' or strip_line == '\n':
                             continue
 
-                        if strip_line.startswith('//') or strip_line.startswith('/*') or strip_line.startswith('*'):
+                        if strip_line.startswith('/*'):
+                            is_in_note_area = True
+
+                        if is_in_note_area and '*/' in strip_line:
+                            is_in_note_area = False
+                            continue
+
+                        if is_in_note_area:
+                            continue
+
+                        if strip_line.startswith('//') or strip_line.startswith('*'):
                             continue
 
                         if is_first_valid_line:
                             # this line must be the package line.
                             is_first_valid_line = False
-                            default_r_package = PACKAGE_PATH_RE.search(strip_line).groups()[0]
+                            default_r_package_search = PACKAGE_PATH_RE.search(strip_line)
+                            if default_r_package_search is None:
+                                exit(
+                                    "can't find package declare for line[" + strip_line + "] on java-file: " + java_path)
+                            default_r_package = default_r_package_search.groups()[0]
 
                         if not in_coding_area:
                             in_import = strip_line.startswith('import')
