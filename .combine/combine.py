@@ -1,5 +1,5 @@
 from os import listdir, makedirs
-from os.path import isdir, exists
+from os.path import exists
 from sys import argv
 
 from res_generator import CombineResGenerator
@@ -59,6 +59,7 @@ process_dependencies_map = {}
 source_dirs = list()
 aidl_dirs = list()
 ignored_dependencies_list = list()
+build_config_fields = {}
 
 for repo_path in repo_path_list:
     print_process("scan for " + repo_path)
@@ -89,11 +90,25 @@ for repo_path in repo_path_list:
         gradle_path = module_dir_path + "/build.gradle"
         print_process("scan for " + gradle_path)
 
-        application_id, group_id, artifact_id, dependencies_list = scan_build_gradle(gradle_path)
+        # R.xxx dependent on manifest application id.
+        manifest_application_id = scan_manifest(get_default_manifest_path(module_dir_path))
+        application_id, group_id, artifact_id, dependencies_list, per_build_config_fields = scan_build_gradle(
+            gradle_path)
         # handle dependencies.
         if dependencies_list is not None:
             for dependency_line in dependencies_list:
                 process_dependencies(process_dependencies_map, dependency_line)
+
+        # handle build config field
+        build_group_id = application_id
+        if build_group_id is None:
+            build_group_id = manifest_application_id
+        if build_group_id is None:
+            print_warn("can't find group id for " + repo_path + " we have to give up with it.")
+            continue
+
+        # todo maybe there are multiple modules with the same build group id
+        build_config_fields[build_group_id] = per_build_config_fields
 
         # handle src
         src_dir_path = get_default_src_path(module_dir_path)
@@ -106,11 +121,10 @@ for repo_path in repo_path_list:
             aidl_dirs.append(aidl_dir_path)
 
         # handle res
-        # R.xxx dependent on manifest application id.
-        manifest_application_id = scan_manifest(get_default_manifest_path(module_dir_path))
-        if manifest_application_id is None:
-            manifest_application_id = application_id
-        if manifest_application_id is None:
+        res_group_id = manifest_application_id
+        if res_group_id is None:
+            res_group_id = application_id
+        if res_group_id is None:
             print_warn("can't handle res for " + repo_path + "because we can't find application id from it.")
         else:
             mock_res_path = pom_artifact_id
@@ -154,7 +168,7 @@ generate_combine_manifest_file(combine_project_path, 'cn.dreamtobe.combine.' + c
 # generate gradle file
 generate_combine_gradle_file(combine_project_path, combine_name)
 # generate the res-modules
-generate_mock_res_modules(combine_project_path, res_module_name_list)
+generate_mock_res_modules(combine_project_path, res_module_name_list, build_config_fields)
 
 # declare to the setting gradle
 print_process("declare to the setting gradle")

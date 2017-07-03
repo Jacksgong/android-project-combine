@@ -156,9 +156,6 @@ class CombineResGenerator:
                             if r_import is not None:
                                 default_r_package = r_import.groups()[0]
 
-
-
-
     def generate(self, root_dir, packagename_foldername_map):
         r_module_folder_list = list()
         r_res = self.r_res

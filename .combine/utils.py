@@ -170,18 +170,23 @@ def search_regex(regex, value):
     return None
 
 
-# get applicationId,groupId,artifactId,dependencies
+# get applicationId,groupId,artifactId,dependencies,build_config_fields
+GROUP_ID_RE = re.compile(r'group *= *"(.*) *"')
+ARTIFACT_ID_RE = re.compile(r'artifactId *= *"(.*) *"')
+APPLICATION_ID_RE = re.compile(r'applicationId *["|\'](.*) *["|\']')
+#                                   buildConfigField "boolean", "filed"
+BUILD_CONFIG_FIELD_RE = re.compile(r'buildConfigField *"(.*)" *, *"(.*)" *,')
+
+
 def scan_build_gradle(module_build_gradle_path):
     application_id = None
     group_id = None
     artifact_id = None
     dependencies = list()
+    build_config_fields = {}
 
-    if not exists(module_build_gradle_path): return application_id, group_id, artifact_id, dependencies
-
-    group_id_re = re.compile(r'group *= *"(.*) *"')
-    artifact_id_re = re.compile(r'artifactId *= *"(.*) *"')
-    application_id_re = re.compile(r'applicationId *["|\'](.*) *["|\']')
+    if not exists(
+            module_build_gradle_path): return application_id, group_id, artifact_id, dependencies, build_config_fields
 
     in_android_area = False
     in_default_config_area = False
@@ -199,17 +204,21 @@ def scan_build_gradle(module_build_gradle_path):
                 in_default_config_area = True
 
             if in_android_area and in_default_config_area:
-                application_id = search_regex(application_id_re, line)
+                application_id = search_regex(APPLICATION_ID_RE, line)
                 if application_id is not None:
                     continue
+                build_config_field_result = BUILD_CONFIG_FIELD_RE.search(line)
+                if build_config_field_result is not None:
+                    build_type, build_field = build_config_field_result.groups()
+                    build_config_fields[build_field] = build_type
 
         if group_id is None:
-            group_id = search_regex(group_id_re, line)
+            group_id = search_regex(GROUP_ID_RE, line)
             if group_id is not None:
                 continue
 
         if artifact_id is None:
-            artifact_id = search_regex(artifact_id_re, line)
+            artifact_id = search_regex(ARTIFACT_ID_RE, line)
             if artifact_id is not None:
                 continue
 
@@ -220,7 +229,7 @@ def scan_build_gradle(module_build_gradle_path):
 
     gradle_file.close()
 
-    return application_id, group_id, artifact_id, dependencies
+    return application_id, group_id, artifact_id, dependencies, build_config_fields
 
 
 # get application_id
@@ -431,7 +440,7 @@ def generate_combine_gradle_file(project_path, combine_name):
     build_gradle_file.close()
 
 
-def generate_mock_res_modules(project_path, res_module_name_list):
+def generate_mock_res_modules(project_path, res_module_name_list, build_config_fields):
     for res_module_name, package_name in res_module_name_list:
         res_module_path = project_path + "/" + res_module_name
         # Android Manifest
@@ -441,12 +450,35 @@ def generate_mock_res_modules(project_path, res_module_name_list):
         build_gradle_file = open(build_gradle_path, "w+")
         build_gradle_file.write("apply plugin: 'com.android.library'\n\n")
 
+        # -- build config field
+        if package_name in build_config_fields:
+            per_build_config_fields = build_config_fields[package_name]
+            build_config_fields[package_name] = None
+            fill_build_config_field(build_gradle_file, package_name, per_build_config_fields)
+
         # -- res
         build_gradle_file.write("ext {\n")
         build_gradle_file.write("    javaDirs = null")
         build_gradle_file.write("\n}")
         build_gradle_file.write("\napply from: '../../../combine-res-common.gradle'\n")
         build_gradle_file.close()
+
+
+def fill_build_config_field(build_gradle_file, package_name, per_build_config_fields):
+    build_gradle_file.write("android {\n")
+    build_gradle_file.write("   defaultConfig {\n")
+    for build_field in per_build_config_fields:
+        build_type = per_build_config_fields[build_field]
+        if build_type == "boolean":
+            build_gradle_file.write('       buildConfigField "boolean", "' + build_field + '", "false"\n')
+        elif build_type == "String":
+            build_gradle_file.write('       buildConfigField "String", "' + build_field + '", "mock"\n')
+        else:
+            print_warn(
+                "we don't support " + build_type + " for build config yet " + "so (" + build_type + " " + build_field +
+                ") for " + package_name + " would be ignored!")
+
+    build_gradle_file.write("   }\n}\n")
 
 
 def generate_setting_gradle_file(root_path, project_path, combine_name, res_module_name_list):
