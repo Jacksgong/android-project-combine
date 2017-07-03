@@ -24,13 +24,14 @@ from os.path import exists, isfile, join
 from shutil import copyfile
 from xml.etree.ElementTree import Element, SubElement, tostring
 
-from res_utils import assemble_res_package_name_and_path, assemble_src_and_dst_path
+from res_utils import assemble_res_package_name_and_path, assemble_src_and_dst_path, \
+    assemble_src_and_dst_path_with_folder, add_one_res_value_to_target_map, find_package_name, scan_xml_string, \
+    mock_res_file, mock_res_content
 
 PACKAGE_PATH_RE = re.compile(r' *package *(.*) *;')
 R_REF = re.compile(r'R\.([a-z]*)\.(\w*)')
 R_DIR_REF = re.compile(r'([a-zA-Z_\.]*)\.R\.([a-z]*)\.(\w*)')
 IMPORT_PACKAGE = re.compile(r'import (.*).R;')
-IGNORE_PACKAGE_LIST = ['android']
 MITMAP_PATH_RE = re.compile(r'.*res/mipmap-.*dpi')
 
 
@@ -40,9 +41,10 @@ class CombineResGenerator:
         pass
 
     r_res = {}
-    # [packagename, attrs]
+    # [packagename, src]
     attrs_res = list()
     mipmap_res = list()
+    # menu_res = list()
     need_mock_res = True
 
     def scan(self, path_list):
@@ -59,6 +61,15 @@ class CombineResGenerator:
                     if MITMAP_PATH_RE.match(subdir):
                         assemble_res_package_name_and_path(subdir, file_name, self.mipmap_res)
                         continue
+                    # if subdir.endswith('res/menu'):
+                    #     package_name = find_package_name(subdir)
+                    #     res_path = join(subdir, file_name)
+                    #     self.menu_res.append([package_name, res_path])
+                    #
+                    #     string_res_list = scan_xml_string(res_path)
+                    #     for r_name in string_res_list:
+                    #         add_one_res_value_to_target_map(package_name, 'string', r_name, r_res)
+                    #     continue
 
                     if not file_name.endswith('.java'):
                         continue
@@ -140,29 +151,7 @@ class CombineResGenerator:
 
                                 handled_r.append(package_name + r_type + r_name)
 
-                                if package_name in IGNORE_PACKAGE_LIST:
-                                    # on ignore list
-                                    continue
-                                else:
-                                    # add if unique
-                                    if package_name in r_res:
-                                        unique_type_name_map = r_res[package_name]
-                                    else:
-                                        unique_type_name_map = {}
-                                        r_res[package_name] = unique_type_name_map
-
-                                    if r_type in unique_type_name_map:
-                                        name_list = unique_type_name_map[r_type]
-                                    else:
-                                        name_list = list()
-                                        unique_type_name_map[r_type] = name_list
-
-                                    if r_name in name_list:
-                                        # duplicate, pass
-                                        continue
-
-                                    # add to list
-                                    name_list.append(r_name)
+                                add_one_res_value_to_target_map(package_name, r_type, r_name, r_res)
 
                         if in_import_area:
                             r_import = IMPORT_PACKAGE.search(strip_line)
@@ -226,56 +215,53 @@ class CombineResGenerator:
                         # generate mock res
                         if r_type == 'drawable':
                             # drawable
-                            self.mock_res_file(r_module_res_path, r_type, r_name,
+                            mock_res_file(r_module_res_path, r_type, r_name,
                                                '<selector xmlns:android="http://schemas.android.com/apk/res/android"/>')
                         elif r_type == 'anim':
-                            self.mock_res_file(r_module_res_path, r_type, r_name,
+                            mock_res_file(r_module_res_path, r_type, r_name,
                                                '<translate xmlns:android="http://schemas.android.com/apk/res/android"/>')
                         elif r_type == 'layout':
-                            self.mock_res_file(r_module_res_path, r_type, r_name,
+                            mock_res_file(r_module_res_path, r_type, r_name,
                                                '<View xmlns:android="http://schemas.android.com/apk/res/android"\n' \
                                                '    android:layout_width="match_parent"\n' \
                                                '    android:layout_height="match_parent"/>')
-                        elif r_type == 'menu':
-                            self.mock_res_file(r_module_res_path, r_type, r_name,
-                                               '<menu/>')
                         elif r_type == 'xml':
-                            self.mock_res_file(r_module_res_path, r_type, r_name,
+                            mock_res_file(r_module_res_path, r_type, r_name,
                                                '<PreferenceScreen/>')
                         elif r_type == 'raw':
-                            self.mock_res_file(r_module_res_path, r_type, r_name, 'mock')
+                            mock_res_file(r_module_res_path, r_type, r_name, 'mock')
                         elif r_type == 'color':
-                            res_path = self.mock_res_content(r_module_values_path, 'colors', r_name, '<color name="',
+                            res_path = mock_res_content(r_module_values_path, 'colors', r_name, '<color name="',
                                                              '">#000</color>')
                             if res_path not in need_close_res_files:
                                 need_close_res_files.append(res_path)
                         elif r_type == 'dimen':
-                            res_path = self.mock_res_content(r_module_values_path, 'dimens', r_name, '<dimen name="',
+                            res_path = mock_res_content(r_module_values_path, 'dimens', r_name, '<dimen name="',
                                                              '">0dp</dimen>')
                             if res_path not in need_close_res_files:
                                 need_close_res_files.append(res_path)
                         elif r_type == 'string':
-                            res_path = self.mock_res_content(r_module_values_path, 'strings', r_name,
+                            res_path = mock_res_content(r_module_values_path, 'strings', r_name,
                                                              '<string name="',
                                                              '">mock</string>')
-
                             if res_path not in need_close_res_files:
                                 need_close_res_files.append(res_path)
                         elif r_type == 'style':
-                            res_path = self.mock_res_content(r_module_values_path, 'styles', r_name, '<style name="',
+                            res_path = mock_res_content(r_module_values_path, 'styles', r_name, '<style name="',
                                                              '"/>')
                             if res_path not in need_close_res_files:
                                 need_close_res_files.append(res_path)
+                        elif r_type == 'menu':
+                            # assemble_src_and_dst_path_with_folder(r_module_res_path, r_type, r_name, 'xml',
+                            #                                       package_name, un_duplicate_copy_mapping,
+                            #                                       self.menu_res, need_copy_file)
+                            mock_res_file(r_module_res_path, r_type, r_name,
+                                          '<menu/>')
+
                         elif r_type == 'mipmap':
-                            dst_root_path = r_module_res_path + 'mipmap/'
-                            if not exists(dst_root_path):
-                                makedirs(dst_root_path)
-
-                            file_name = r_name + '.png'
-                            dst_path = dst_root_path + file_name
-                            assemble_src_and_dst_path(dst_path, file_name, package_name, un_duplicate_copy_mapping,
-                                                      self.mipmap_res, need_copy_file)
-
+                            assemble_src_and_dst_path_with_folder(r_module_res_path, r_type, r_name, 'png',
+                                                                  package_name, un_duplicate_copy_mapping,
+                                                                  self.mipmap_res, need_copy_file)
                         elif r_type == "styleable":
                             dst_path = r_module_values_path + 'attrs.xml'
                             assemble_src_and_dst_path(dst_path, 'attrs.xml', package_name, un_duplicate_copy_mapping,
@@ -299,29 +285,3 @@ class CombineResGenerator:
 
         return r_module_folder_list
 
-    @staticmethod
-    def mock_res_file(root_path, type, value, mock_content):
-        res_path = root_path + type + "/"
-        if not exists(res_path):
-            makedirs(res_path)
-
-        target_res_path = res_path + value + '.xml'
-        print 'mock ' + target_res_path
-        with open(target_res_path, "w+") as res_file:
-            res_file.write(mock_content)
-
-    @staticmethod
-    def mock_res_content(root_path, type, value, prefix, suffix):
-        res_path = root_path + type + ".xml"
-        is_first_created = not isfile(res_path)
-        print 'mock ' + value + ' on ' + res_path
-        if is_first_created:
-            with open(res_path, "w+") as res_file:
-                # open the resource
-                res_file.write('<?xml version="1.0" encoding="utf-8"?>\n')
-                res_file.write('<resources>\n')
-
-        with open(res_path, "a") as res_file:
-            res_file.write('    ' + prefix + value + suffix + '\n')
-
-        return res_path
