@@ -38,7 +38,7 @@ Execute `./refresh.sh` to refresh env
 
 #### Step 3. Open on the Android Studio
 
-Open alipay-project-combine on the Android Studio.
+Open android-project-combine on the Android Studio.
 
 
 ## TODO LIST
