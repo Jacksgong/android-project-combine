@@ -1,6 +1,6 @@
 # Android Project Combine
 
-You can using this toolset to combine multiple Android gradle projects.
+Combine multiple android projects on one Android Studio window.
 
 ## WHAT ABOUT THIS?
 
