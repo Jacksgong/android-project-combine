@@ -5,6 +5,8 @@ from os import environ, listdir, makedirs
 from os.path import exists, isdir
 from xml.etree.ElementTree import parse
 
+__author__ = 'JacksGong'
+
 
 def git(*args):
     return subprocess.check_call(['git'] + list(args))
@@ -467,6 +469,8 @@ def generate_mock_res_modules(project_path, res_module_name_list, build_config_f
         # -- build config field
         if package_name in build_config_fields:
             per_build_config_fields = build_config_fields[package_name]
+            # remove it.
+            del build_config_fields[package_name]
         generate_mock_module(project_path, res_module_name, package_name, per_build_config_fields)
 
 

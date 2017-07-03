@@ -3,9 +3,13 @@
     <words>
       <w>addr</w>
       <w>aidl</w>
+      <w>attrs</w>
       <w>foldername</w>
       <w>gradle</w>
+      <w>mipmap</w>
+      <w>mitmap</w>
       <w>packagename</w>
+      <w>styleable</w>
       <w>termcolor</w>
       <w>undefine</w>
     </words>

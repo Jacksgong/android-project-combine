@@ -9,11 +9,14 @@ from os.path import abspath, exists, isdir, isfile, join, pardir
 from shutil import copyfile
 from xml.etree.ElementTree import Element, SubElement, tostring
 
+from res_utils import assemble_res_package_name_and_path, assemble_src_and_dst_path
+
 PACKAGE_PATH_RE = re.compile(r' *package *(.*) *;')
 R_REF = re.compile(r'R\.([a-z]*)\.(\w*)')
 R_DIR_REF = re.compile(r'([a-zA-Z_\.]*)\.R\.([a-z]*)\.(\w*)')
 IMPORT_PACKAGE = re.compile(r'import (.*).R;')
 IGNORE_PACKAGE_LIST = ['android']
+MITMAP_PATH_RE = re.compile(r'.*res/mipmap-.*dpi')
 
 
 class CombineResGenerator:
@@ -24,29 +27,8 @@ class CombineResGenerator:
     r_res = {}
     # [packagename, attrs]
     attrs_res = list()
+    mipmap_res = list()
     need_mock_res = True
-
-    application_id_re = re.compile(r'applicationId *["|\'](.*) *["|\']')
-    package_name_re = re.compile(r'package *= *["|\'](.*) *["|\']')
-
-    def find_package_name_dir_up(self, parent_path):
-        for file_name in listdir(parent_path):
-            if isdir(file_name):
-                continue
-
-            if file_name == 'AndroidManifest.xml':
-                for line in open(join(parent_path, file_name), 'r'):
-                    package_name_re_result = self.package_name_re.search(line)
-                    if package_name_re_result is not None:
-                        return package_name_re_result.groups()[0]
-
-            if file_name == 'build.gradle':
-                for line in open(join(parent_path, file_name), 'r'):
-                    application_id_re_result = self.application_id_re.search(line)
-                    if application_id_re_result is not None:
-                        return application_id_re_result.groups()[0]
-
-        return self.find_package_name_dir_up(abspath(join(parent_path, pardir)))
 
     def scan(self, path_list):
         r_res = self.r_res
@@ -56,10 +38,11 @@ class CombineResGenerator:
                 for file_name in files:
 
                     if file_name == 'attrs.xml' and subdir.endswith('res/values'):
-                        res_path = abspath(join(subdir, pardir))
-                        parent_path = abspath(join(res_path, pardir))
-                        package_name = self.find_package_name_dir_up(parent_path)
-                        self.attrs_res.append([package_name, join(subdir, file_name)])
+                        assemble_res_package_name_and_path(subdir, file_name, self.attrs_res)
+                        continue
+
+                    if MITMAP_PATH_RE.match(subdir):
+                        assemble_res_package_name_and_path(subdir, file_name, self.mipmap_res)
                         continue
 
                     if not file_name.endswith('.java'):
@@ -268,21 +251,20 @@ class CombineResGenerator:
                                                              '"/>')
                             if res_path not in need_close_res_files:
                                 need_close_res_files.append(res_path)
-                        elif r_type == "styleable":
-                            # res_path = self.mock_res_content(r_module_values_path, 'attrs', r_name,
-                            #                                  '<declare-styleable name="',
-                            #                                  '"/>')
-                            # if res_path not in need_close_res_files:
-                            #     need_close_res_files.append(res_path)
-                            dst_path = r_module_values_path + 'attrs.xml'
-                            if package_name + dst_path in un_duplicate_copy_mapping:
-                                continue
+                        elif r_type == 'mipmap':
+                            dst_root_path = r_module_res_path + 'mipmap/'
+                            if not exists(dst_root_path):
+                                makedirs(dst_root_path)
 
-                            for attrs_package_name, attrs_path in self.attrs_res:
-                                if package_name == attrs_package_name:
-                                    need_copy_file.append([attrs_path, dst_path])
-                                    un_duplicate_copy_mapping.append(package_name + dst_path)
-                                    break
+                            file_name = r_name + '.png'
+                            dst_path = dst_root_path + file_name
+                            assemble_src_and_dst_path(dst_path, file_name, package_name, un_duplicate_copy_mapping,
+                                                      self.mipmap_res, need_copy_file)
+
+                        elif r_type == "styleable":
+                            dst_path = r_module_values_path + 'attrs.xml'
+                            assemble_src_and_dst_path(dst_path, 'attrs.xml', package_name, un_duplicate_copy_mapping,
+                                                      self.attrs_res, need_copy_file)
 
             if r_id_xml is not None:
                 with open(r_id_xml_path, "w+") as res_file:
