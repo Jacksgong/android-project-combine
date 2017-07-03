@@ -83,8 +83,30 @@ def find_exposed_lib(line):
     return group_id, artifact_id
 
 
+IGNORE_MODULE = re.compile(r' *- *ignore-module: *(.*)')
+
+
+def find_ignore_module(line):
+    finder = IGNORE_MODULE.match(line)
+    if finder is None:
+        return None
+    return finder.groups()[0]
+
+
+def generate_ignore_module_key(repo_path, ignore_module_name):
+    return repo_path + ':' + ignore_module_name
+
+
+class LastRepo:
+    def __init__(self):
+        pass
+
+    value = None
+
+
 # get repo-addr or repo-path from repo_candidate_path
-def handle_repo_path(repo_candidate_path, repo_addr_list, repo_path_list, ignored_dependencies_list):
+def handle_repo_path(repo_candidate_path, repo_addr_list, repo_path_list, ignored_dependencies_list,
+                     ignored_modules_map, last_repo):
     group_id, artifact_id = find_exposed_lib(repo_candidate_path)
     if group_id is not None:
         if artifact_id is None:
@@ -95,16 +117,31 @@ def handle_repo_path(repo_candidate_path, repo_addr_list, repo_path_list, ignore
         print("find need exposed: " + group_id + ":" + artifact_id)
         return True
     elif repo_candidate_path.startswith('http') or repo_candidate_path.startswith('git'):
+        last_repo.value = repo_candidate_path
         repo_addr_list.append(repo_candidate_path)
     elif repo_candidate_path.startswith('~') or repo_candidate_path.startswith('/') or repo_candidate_path.startswith(
             '\\'):
         local_path = handle_home_case(repo_candidate_path)
         if exists(local_path):
+            last_repo.value = local_path
             repo_path_list.append(local_path)
         else:
             print_warn("The directory of " + repo_candidate_path + " can't found!")
             return False
     else:
+        ignore_module = find_ignore_module(repo_candidate_path)
+        if ignore_module is not None:
+            if last_repo.value is None:
+                print_warn("ignore-module must be belong to any repo, wrong format for alone ignore-module " +
+                           repo_candidate_path)
+                return False
+            if last_repo.value not in ignored_modules_map:
+                ignored_modules_map[last_repo.value] = list()
+            ignore_module_list = ignored_modules_map[last_repo.value]
+            ignore_module_list.append(ignore_module)
+            print("find ignore module: " + ignore_module + " belong to " + last_repo.value)
+            return True
+
         print_warn("can't recognize " + repo_candidate_path + " format!")
         return False
     return True
@@ -117,7 +154,8 @@ def is_valid_gradle_folder(module_candidate_name, module_candidate_path):
 
 
 # process the conf_path to get the repo_addr_list and the repo_path_list
-def process_repos_conf(conf_path, repo_addr_list, repo_path_list, ignored_dependencies_list):
+def process_repos_conf(conf_path, repo_addr_list, repo_path_list, ignored_dependencies_list, ignored_modules_map):
+    last_repo = LastRepo()
     if exists(conf_path):
         # loading config from local config file.
         conf_file = open(conf_path, "r")
@@ -125,7 +163,8 @@ def process_repos_conf(conf_path, repo_addr_list, repo_path_list, ignored_depend
             strip_line = line.strip()
             if strip_line == '' or strip_line[0] == '#':
                 continue
-            if not handle_repo_path(strip_line, repo_addr_list, repo_path_list, ignored_dependencies_list):
+            if not handle_repo_path(strip_line, repo_addr_list, repo_path_list, ignored_dependencies_list,
+                                    ignored_modules_map, last_repo):
                 exit("Goodbye!")
         conf_file.close()
     else:
@@ -145,14 +184,26 @@ def process_repos_conf(conf_path, repo_addr_list, repo_path_list, ignored_depend
             if content is None or content.strip() == '':
                 break
             else:
-                handle_repo_path(content.strip(), repo_addr_list, repo_path_list, ignored_dependencies_list)
+                handle_repo_path(content.strip(), repo_addr_list, repo_path_list, ignored_dependencies_list,
+                                 ignored_modules_map, last_repo)
+
+
+REPO_NAME_RE = re.compile(r'([^/]*)\.git')
 
 
 # clone repo if need.
-def process_clone_repo(repositories_path, repo_addr_list, target_path_list):
-    repo_name_re = re.compile(r'([^/]*)\.git')
+def process_clone_repo(repositories_path, repo_addr_list, target_path_list,
+                       ignore_modules_map, target_ignore_modules_list):
+    # ignore module list
+    for repo_path in target_path_list:
+        if repo_path in ignore_modules_map:
+            ignore_modules_list = ignore_modules_map[repo_path]
+            for ignore_module in ignore_modules_list:
+                target_ignore_modules_list.append(generate_ignore_module_key(repo_path, ignore_module))
+
+    # clone through git
     for repo_addr in repo_addr_list:
-        re_name = repo_name_re.search(repo_addr)
+        re_name = REPO_NAME_RE.search(repo_addr)
         repo_folder_name = re_name.groups()[0]
 
         repo_path = repositories_path + repo_folder_name
@@ -163,7 +214,12 @@ def process_clone_repo(repositories_path, repo_addr_list, target_path_list):
             print_process("execute bash: git clone " + repo_addr + " " + repo_path)
             git("clone", repo_addr, repo_path)
 
+        # convert ignore module from addr to path
         target_path_list.append(repo_path)
+        if repo_addr in ignore_modules_map:
+            ignore_modules_list = ignore_modules_map[repo_addr]
+            for ignore_module in ignore_modules_list:
+                target_ignore_modules_list.append(generate_ignore_module_key(repo_path, ignore_module))
 
 
 # get real project path(which has settings.gradle file)
@@ -605,11 +661,14 @@ def get_res_mock_module_name(combine_name, res_module_name):
     return combine_name + "-" + res_module_name
 
 
-def scan_module(module_dir_name, module_dir_path, pom_artifact_id,
+def scan_module(repo_path, module_dir_name, module_dir_path, pom_artifact_id, ignored_modules_list,
                 process_dependencies_map, build_config_fields, source_dirs, aidl_dirs, res_group_map):
     if not is_valid_gradle_folder(module_dir_name, module_dir_path):
         return
 
+    if generate_ignore_module_key(repo_path, module_dir_name) in ignored_modules_list:
+        print_warn("ignored " + module_dir_name + " on " + repo_path + " because of you declared on the repos.conf")
+        return
     # on module folder.
 
     # scan gradle file.

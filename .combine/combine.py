@@ -22,8 +22,7 @@ from sys import argv
 
 from res_generator import CombineResGenerator
 from utils import print_error, process_repos_conf, process_clone_repo, print_process, process_gradle_project_path, \
-    print_warn, is_valid_gradle_folder, scan_build_gradle, scan_pom, generate_ignore_matcher, get_default_manifest_path, \
-    scan_manifest, process_dependencies, get_default_src_path, get_default_aidl_path, handle_process_dependencies, \
+    print_warn, scan_pom, generate_ignore_matcher, handle_process_dependencies, \
     deeper_source_path, generate_mock_res_modules, generate_build_config_fields_modules, generate_combine_conf_file, \
     generate_combine_manifest_file, generate_combine_gradle_file, generate_setting_gradle_file, scan_module, \
     is_contain_multiple_modules
@@ -42,6 +41,7 @@ combine_project_path = root_path + "combine/" + combine_name
 combine_conf_path = root_path + "conf"
 combine_gradle_path = combine_conf_path + "/" + combine_name + "-combine.gradle"
 ignored_dependencies_list = list()
+ignored_modules_list = list()
 
 print(chr(27) + "[2J")
 
@@ -67,10 +67,12 @@ else:
 tmp_repo_addr_list = list()
 repo_path_list = list()
 
+# addr/path: [module]
+tmp_ignore_modules_map = {}
 # handle the conf file.
-process_repos_conf(conf_file_path, tmp_repo_addr_list, repo_path_list, ignored_dependencies_list)
+process_repos_conf(conf_file_path, tmp_repo_addr_list, repo_path_list, ignored_dependencies_list, tmp_ignore_modules_map)
 # handle the repo address and get repo_path_list.
-process_clone_repo(repositories_path, tmp_repo_addr_list, repo_path_list)
+process_clone_repo(repositories_path, tmp_repo_addr_list, repo_path_list, tmp_ignore_modules_map, ignored_modules_list)
 # --------- now repos is ready on repo_path_list
 
 
@@ -100,13 +102,13 @@ for repo_path in repo_path_list:
     if not is_contain_multiple_modules(project_path):
         # current project is just a module
         project_name = basename(normpath(project_path))
-        scan_module(project_name, project_path, pom_artifact_id,
+        scan_module(repo_path, project_name, project_path, pom_artifact_id, ignored_modules_list,
                     process_dependencies_map, build_config_fields, source_dirs, aidl_dirs, res_group_map)
         continue
 
     for module_dir_name in listdir(project_path):
         module_dir_path = project_path + "/" + module_dir_name
-        scan_module(module_dir_name, module_dir_path, pom_artifact_id,
+        scan_module(repo_path, module_dir_name, module_dir_path, pom_artifact_id, ignored_modules_list,
                     process_dependencies_map, build_config_fields, source_dirs, aidl_dirs, res_group_map)
 
 final_dependencies_list = handle_process_dependencies(process_dependencies_map, ignored_dependencies_list)

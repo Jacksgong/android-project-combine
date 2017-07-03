@@ -33,7 +33,7 @@ Open alipay-project-combine on the Android Studio.
 - [x] Support buildConfigField on gradle
 - [x] Support `-exposed:` to exposed `groud_id` and `artifact_id`
 - [x] Support mipmap
-- [] Support `-ignore module: [folder name]`
+- [x] Support `-ignore-module: [folder name]`
 
 ## LICENSE
 
