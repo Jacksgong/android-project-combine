@@ -7,7 +7,7 @@ from utils import print_error, process_repos_conf, process_clone_repo, print_pro
     print_warn, is_valid_gradle_folder, scan_build_gradle, scan_pom, generate_ignore_matcher, get_default_manifest_path, \
     scan_manifest, process_dependencies, get_default_src_path, handle_process_dependencies, generate_combine_conf_file, \
     generate_combine_manifest_file, generate_combine_gradle_file, generate_mock_res_modules, \
-    generate_setting_gradle_file, deeper_source_path, get_default_aidl_path
+    generate_setting_gradle_file, deeper_source_path, get_default_aidl_path, generate_build_config_fields_modules
 
 __author__ = 'JacksGong'
 __version__ = '1.0.0'
@@ -152,12 +152,25 @@ print_process("generate " + combine_gradle_path)
 if not exists(combine_conf_path):
     makedirs(combine_conf_path)
 
+
+# store all mock modules: [[module_name, application_id]]
+mock_module_list = list()
+
 # scan res
 res_generator = CombineResGenerator()
 res_generator.scan(repo_path_list)
 res_module_name_list = res_generator.generate(combine_project_path, res_group_map)
+mock_module_list.extend(res_module_name_list)
+
+# generate the res-modules
+generate_mock_res_modules(combine_project_path, res_module_name_list, build_config_fields)
+# generate the build-config-field-modules
+build_config_fields_module_list = generate_build_config_fields_modules(combine_project_path, build_config_fields)
+mock_module_list.extend(build_config_fields_module_list)
+
+# generate combine conf file
 generate_combine_conf_file(combine_name, combine_gradle_path, source_dirs, aidl_dirs, final_dependencies_list,
-                           res_module_name_list)
+                           mock_module_list)
 
 # generate combine project
 print_process("generate combine project")
@@ -167,11 +180,9 @@ if not exists(combine_project_path):
 generate_combine_manifest_file(combine_project_path, 'cn.dreamtobe.combine.' + combine_name)
 # generate gradle file
 generate_combine_gradle_file(combine_project_path, combine_name)
-# generate the res-modules
-generate_mock_res_modules(combine_project_path, res_module_name_list, build_config_fields)
 
 # declare to the setting gradle
 print_process("declare to the setting gradle")
-generate_setting_gradle_file(root_path, combine_project_path, combine_name, res_module_name_list)
+generate_setting_gradle_file(root_path, combine_project_path, combine_name, mock_module_list)
 
 print_process("everything is ready, please open the combine project on AndroidStudio!")

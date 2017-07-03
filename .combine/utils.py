@@ -1,7 +1,7 @@
 import re
 import subprocess
 from distutils.version import LooseVersion
-from os import environ, listdir
+from os import environ, listdir, makedirs
 
 from xml.etree.ElementTree import parse
 
@@ -442,26 +442,50 @@ def generate_combine_gradle_file(project_path, combine_name):
 
 def generate_mock_res_modules(project_path, res_module_name_list, build_config_fields):
     for res_module_name, package_name in res_module_name_list:
-        res_module_path = project_path + "/" + res_module_name
-        # Android Manifest
-        generate_combine_manifest_file(res_module_path, package_name)
-        # gradle file
-        build_gradle_path = res_module_path + "/" + "build.gradle"
-        build_gradle_file = open(build_gradle_path, "w+")
-        build_gradle_file.write("apply plugin: 'com.android.library'\n\n")
-
+        per_build_config_fields = None
         # -- build config field
         if package_name in build_config_fields:
             per_build_config_fields = build_config_fields[package_name]
-            build_config_fields[package_name] = None
-            fill_build_config_field(build_gradle_file, package_name, per_build_config_fields)
+        generate_mock_module(project_path, res_module_name, package_name, per_build_config_fields)
 
-        # -- res
-        build_gradle_file.write("ext {\n")
-        build_gradle_file.write("    javaDirs = null")
-        build_gradle_file.write("\n}")
-        build_gradle_file.write("\napply from: '../../../combine-res-common.gradle'\n")
-        build_gradle_file.close()
+
+def generate_build_config_fields_modules(project_path, build_config_fields):
+    build_config_fields_module_list = list()
+    # -- mock module for build config field.
+    for application_id in build_config_fields:
+        per_build_config_fields = build_config_fields[application_id]
+        if per_build_config_fields.__len__() <= 0:
+            continue
+        mock_module_name = application_id.replace('.', '_')
+        generate_mock_module(project_path, mock_module_name, application_id, per_build_config_fields)
+        build_config_fields_module_list.append([mock_module_name, application_id])
+
+    return build_config_fields_module_list
+
+
+def generate_mock_module(project_path, module_name, package_name, build_config_files):
+    module_path = project_path + "/" + module_name
+    if not exists(module_path):
+        makedirs(module_path)
+
+    # Android Manifest
+    generate_combine_manifest_file(module_path, package_name)
+    # gradle file
+    build_gradle_path = module_path + "/" + "build.gradle"
+    build_gradle_file = open(build_gradle_path, "w+")
+    build_gradle_file.write("apply plugin: 'com.android.library'\n\n")
+
+    # -- build config field
+    if build_config_files is not None and build_config_files.__len__() > 0:
+        print("add build config field for " + package_name + " " + build_config_files.__str__())
+        fill_build_config_field(build_gradle_file, package_name, build_config_files)
+
+    # -- res
+    build_gradle_file.write("ext {\n")
+    build_gradle_file.write("    javaDirs = null")
+    build_gradle_file.write("\n}")
+    build_gradle_file.write("\napply from: '../../../combine-res-common.gradle'\n")
+    build_gradle_file.close()
 
 
 def fill_build_config_field(build_gradle_file, package_name, per_build_config_fields):
@@ -469,8 +493,8 @@ def fill_build_config_field(build_gradle_file, package_name, per_build_config_fi
     build_gradle_file.write("   defaultConfig {\n")
     for build_field in per_build_config_fields:
         build_type = per_build_config_fields[build_field]
-        if build_type == "boolean":
-            build_gradle_file.write('       buildConfigField "boolean", "' + build_field + '", "false"\n')
+        if build_type == "boolean" or build_type == "Boolean":
+            build_gradle_file.write('       buildConfigField "' + build_type + '", "' + build_field + '", "false"\n')
         elif build_type == "String":
             build_gradle_file.write('       buildConfigField "String", "' + build_field + '", "mock"\n')
         else:
