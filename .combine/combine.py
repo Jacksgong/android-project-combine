@@ -5,9 +5,9 @@ from sys import argv
 from res_generator import CombineResGenerator
 from utils import print_error, process_repos_conf, process_clone_repo, print_process, process_gradle_project_path, \
     print_warn, is_valid_gradle_folder, scan_build_gradle, scan_pom, generate_ignore_matcher, get_default_manifest_path, \
-    scan_manifest, process_dependencies, get_default_src_path, handle_process_dependencies, generate_combine_conf_file, \
-    generate_combine_manifest_file, generate_combine_gradle_file, generate_mock_res_modules, \
-    generate_setting_gradle_file, deeper_source_path, get_default_aidl_path, generate_build_config_fields_modules
+    scan_manifest, process_dependencies, get_default_src_path, get_default_aidl_path, handle_process_dependencies, \
+    deeper_source_path, generate_mock_res_modules, generate_build_config_fields_modules, generate_combine_conf_file, \
+    generate_combine_manifest_file, generate_combine_gradle_file, generate_setting_gradle_file
 
 __author__ = 'JacksGong'
 __version__ = '1.0.0'
@@ -22,6 +22,7 @@ repos_conf_path = root_path + 'repos.conf'
 combine_project_path = root_path + "combine/" + combine_name
 combine_conf_path = root_path + "conf"
 combine_gradle_path = combine_conf_path + "/" + combine_name + "-combine.gradle"
+ignored_dependencies_list = list()
 
 print(chr(27) + "[2J")
 
@@ -48,7 +49,7 @@ tmp_repo_addr_list = list()
 repo_path_list = list()
 
 # handle the conf file.
-process_repos_conf(conf_file_path, tmp_repo_addr_list, repo_path_list)
+process_repos_conf(conf_file_path, tmp_repo_addr_list, repo_path_list, ignored_dependencies_list)
 # handle the repo address and get repo_path_list.
 process_clone_repo(repositories_path, tmp_repo_addr_list, repo_path_list)
 # --------- now repos is ready on repo_path_list
@@ -58,7 +59,6 @@ res_group_map = {}
 process_dependencies_map = {}
 source_dirs = list()
 aidl_dirs = list()
-ignored_dependencies_list = list()
 build_config_fields = {}
 
 for repo_path in repo_path_list:
@@ -151,7 +151,6 @@ print_process("generate " + combine_gradle_path)
 # add res and dependencies and source
 if not exists(combine_conf_path):
     makedirs(combine_conf_path)
-
 
 # store all mock modules: [[module_name, application_id]]
 mock_module_list = list()

@@ -2,10 +2,8 @@ import re
 import subprocess
 from distutils.version import LooseVersion
 from os import environ, listdir, makedirs
-
-from xml.etree.ElementTree import parse
-
 from os.path import exists, isdir
+from xml.etree.ElementTree import parse
 
 
 def git(*args):
@@ -51,9 +49,32 @@ def handle_home_case(path):
     return path
 
 
+EXPOSED_LINE_RE = re.compile(r' *- *exposed: *(.*):(.*)')
+
+
+def find_exposed_lib(line):
+    group_id = None
+    artifact_id = None
+    finder = EXPOSED_LINE_RE.match(line)
+    if finder is None:
+        return group_id, artifact_id
+
+    group_id, artifact_id = finder.groups()
+    return group_id, artifact_id
+
+
 # get repo-addr or repo-path from repo_candidate_path
-def handle_repo_path(repo_candidate_path, repo_addr_list, repo_path_list):
-    if repo_candidate_path.startswith('http') or repo_candidate_path.startswith('git'):
+def handle_repo_path(repo_candidate_path, repo_addr_list, repo_path_list, ignored_dependencies_list):
+    group_id, artifact_id = find_exposed_lib(repo_candidate_path)
+    if group_id is not None:
+        if artifact_id is None:
+            print_warn("the format is wrong, we can't find artifact id from " + repo_candidate_path +
+                       " right one must be: group_id:artifact_id")
+            return False
+        ignored_dependencies_list.append(generate_ignore_matcher(group_id, artifact_id))
+        print("find need exposed: " + group_id + ":" + artifact_id)
+        return True
+    elif repo_candidate_path.startswith('http') or repo_candidate_path.startswith('git'):
         repo_addr_list.append(repo_candidate_path)
     elif repo_candidate_path.startswith('~') or repo_candidate_path.startswith('/') or repo_candidate_path.startswith(
             '\\'):
@@ -76,7 +97,7 @@ def is_valid_gradle_folder(module_candidate_name, module_candidate_path):
 
 
 # process the conf_path to get the repo_addr_list and the repo_path_list
-def process_repos_conf(conf_path, repo_addr_list, repo_path_list):
+def process_repos_conf(conf_path, repo_addr_list, repo_path_list, ignored_dependencies_list):
     if exists(conf_path):
         # loading config from local config file.
         conf_file = open(conf_path, "r")
@@ -84,7 +105,7 @@ def process_repos_conf(conf_path, repo_addr_list, repo_path_list):
             strip_line = line.strip()
             if strip_line == '' or strip_line[0] == '#':
                 continue
-            if not handle_repo_path(strip_line, repo_addr_list, repo_path_list):
+            if not handle_repo_path(strip_line, repo_addr_list, repo_path_list, ignored_dependencies_list):
                 exit("Goodbye!")
         conf_file.close()
     else:
@@ -104,7 +125,7 @@ def process_repos_conf(conf_path, repo_addr_list, repo_path_list):
             if content is None or content.strip() == '':
                 break
             else:
-                handle_repo_path(content.strip(), repo_addr_list, repo_path_list)
+                handle_repo_path(content.strip(), repo_addr_list, repo_path_list, ignored_dependencies_list)
 
 
 # clone repo if need.
