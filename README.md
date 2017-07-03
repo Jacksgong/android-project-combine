@@ -4,7 +4,7 @@ Combine multiple android projects on one Android Studio window.
 
 ## WHAT ABOUT THIS?
 
-> This is very useful when you developing several projects but that need to communicate each other(such as Atlas project)
+> This is very useful when you developing several projects but they need to communicate each other(such as Atlas project)
 
 - Different Android projects develop together at the one Android Studio window.
 - Find References and Jump into source code rather than .class file on jar package.
