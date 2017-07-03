@@ -1,4 +1,4 @@
-# This python script used for generating combine resources for multiple alipay-bundles to one project.
+# This python script used for generating mock resources for multiple modules on multiple projects.
 #
 # @author jacks.gong
 # @date: 2017.04.19
