@@ -1,6 +1,7 @@
 .DS_Store
 /local.properties
 /.gradle
+/.idea/android-project-combine.iml
 /.idea/workspace.xml
 /.idea/libraries
 /.idea/gradle.xml
