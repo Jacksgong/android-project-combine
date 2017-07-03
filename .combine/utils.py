@@ -175,13 +175,21 @@ def process_gradle_project_path(project_candidate_path):
             try_repo_path = project_candidate_path + "/" + dir_name
 
             try_setting_gradle_path = try_repo_path + "/settings.gradle"
-            print_process("try the gradle: " + try_setting_gradle_path)
+            print_process("scan settings.gradle file on: " + try_setting_gradle_path)
             if exists(try_setting_gradle_path):
                 return try_repo_path
     else:
         return project_candidate_path
 
+    build_gradle_file = project_candidate_path + "/build.gradle"
+    if exists(build_gradle_file) and not isdir(build_gradle_file):
+        return project_candidate_path
+
     return None
+
+
+def is_contain_multiple_modules(project_path):
+    return exists(project_path + "/settings.gradle")
 
 
 # get groupId,artifactId
@@ -595,3 +603,59 @@ def assemble_source_path(source_root_path):
 
 def get_res_mock_module_name(combine_name, res_module_name):
     return combine_name + "-" + res_module_name
+
+
+def scan_module(module_dir_name, module_dir_path, pom_artifact_id,
+                process_dependencies_map, build_config_fields, source_dirs, aidl_dirs, res_group_map):
+    if not is_valid_gradle_folder(module_dir_name, module_dir_path):
+        return
+
+    # on module folder.
+
+    # scan gradle file.
+    gradle_path = module_dir_path + "/build.gradle"
+    print_process("scan for " + gradle_path)
+
+    # R.xxx dependent on manifest application id.
+    manifest_application_id = scan_manifest(get_default_manifest_path(module_dir_path))
+    application_id, group_id, artifact_id, dependencies_list, per_build_config_fields = scan_build_gradle(
+        gradle_path)
+    # handle dependencies.
+    if dependencies_list is not None:
+        for dependency_line in dependencies_list:
+            process_dependencies(process_dependencies_map, dependency_line)
+
+    # handle build config field
+    build_group_id = application_id
+    if build_group_id is None:
+        build_group_id = manifest_application_id
+    if build_group_id is None:
+        print_warn("can't find group id for " + module_dir_path + " we have to give up with it.")
+        return
+
+    # todo maybe there are multiple modules with the same build group id
+    build_config_fields[build_group_id] = per_build_config_fields
+
+    # handle src
+    src_dir_path = get_default_src_path(module_dir_path)
+    if src_dir_path is not None:
+        source_dirs.append(src_dir_path)
+
+    # handle aidl
+    aidl_dir_path = get_default_aidl_path(module_dir_path)
+    if aidl_dir_path is not None:
+        aidl_dirs.append(aidl_dir_path)
+
+    # handle res
+    res_group_id = manifest_application_id
+    if res_group_id is None:
+        res_group_id = application_id
+    if res_group_id is None:
+        print_warn("can't handle res for " + module_dir_path + "because we can't find application id from it.")
+    else:
+        mock_res_path = pom_artifact_id
+        if mock_res_path is None:
+            mock_res_path = artifact_id
+        if mock_res_path is None:
+            mock_res_path = manifest_application_id.replace(".", "_")
+        res_group_map[manifest_application_id] = mock_res_path

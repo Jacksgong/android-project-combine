@@ -17,7 +17,7 @@ limitations under the License.
 """
 
 from os import listdir, makedirs
-from os.path import exists
+from os.path import exists, basename, normpath
 from sys import argv
 
 from res_generator import CombineResGenerator
@@ -25,7 +25,8 @@ from utils import print_error, process_repos_conf, process_clone_repo, print_pro
     print_warn, is_valid_gradle_folder, scan_build_gradle, scan_pom, generate_ignore_matcher, get_default_manifest_path, \
     scan_manifest, process_dependencies, get_default_src_path, get_default_aidl_path, handle_process_dependencies, \
     deeper_source_path, generate_mock_res_modules, generate_build_config_fields_modules, generate_combine_conf_file, \
-    generate_combine_manifest_file, generate_combine_gradle_file, generate_setting_gradle_file
+    generate_combine_manifest_file, generate_combine_gradle_file, generate_setting_gradle_file, scan_module, \
+    is_contain_multiple_modules
 
 __author__ = 'JacksGong'
 __version__ = '1.0.0'
@@ -96,61 +97,17 @@ for repo_path in repo_path_list:
         ignore_dependency = generate_ignore_matcher(pom_group_id, pom_artifact_id)
         ignored_dependencies_list.append(ignore_dependency)
 
+    if not is_contain_multiple_modules(project_path):
+        # current project is just a module
+        project_name = basename(normpath(project_path))
+        scan_module(project_name, project_path, pom_artifact_id,
+                    process_dependencies_map, build_config_fields, source_dirs, aidl_dirs, res_group_map)
+        continue
+
     for module_dir_name in listdir(project_path):
         module_dir_path = project_path + "/" + module_dir_name
-
-        if not is_valid_gradle_folder(module_dir_name, module_dir_path):
-            continue
-
-        # on module folder.
-
-        # scan gradle file.
-        gradle_path = module_dir_path + "/build.gradle"
-        print_process("scan for " + gradle_path)
-
-        # R.xxx dependent on manifest application id.
-        manifest_application_id = scan_manifest(get_default_manifest_path(module_dir_path))
-        application_id, group_id, artifact_id, dependencies_list, per_build_config_fields = scan_build_gradle(
-            gradle_path)
-        # handle dependencies.
-        if dependencies_list is not None:
-            for dependency_line in dependencies_list:
-                process_dependencies(process_dependencies_map, dependency_line)
-
-        # handle build config field
-        build_group_id = application_id
-        if build_group_id is None:
-            build_group_id = manifest_application_id
-        if build_group_id is None:
-            print_warn("can't find group id for " + repo_path + " we have to give up with it.")
-            continue
-
-        # todo maybe there are multiple modules with the same build group id
-        build_config_fields[build_group_id] = per_build_config_fields
-
-        # handle src
-        src_dir_path = get_default_src_path(module_dir_path)
-        if src_dir_path is not None:
-            source_dirs.append(src_dir_path)
-
-        # handle aidl
-        aidl_dir_path = get_default_aidl_path(module_dir_path)
-        if aidl_dir_path is not None:
-            aidl_dirs.append(aidl_dir_path)
-
-        # handle res
-        res_group_id = manifest_application_id
-        if res_group_id is None:
-            res_group_id = application_id
-        if res_group_id is None:
-            print_warn("can't handle res for " + repo_path + "because we can't find application id from it.")
-        else:
-            mock_res_path = pom_artifact_id
-            if mock_res_path is None:
-                mock_res_path = artifact_id
-            if mock_res_path is None:
-                mock_res_path = manifest_application_id.replace(".", "_")
-            res_group_map[manifest_application_id] = mock_res_path
+        scan_module(module_dir_name, module_dir_path, pom_artifact_id,
+                    process_dependencies_map, build_config_fields, source_dirs, aidl_dirs, res_group_map)
 
 final_dependencies_list = handle_process_dependencies(process_dependencies_map, ignored_dependencies_list)
 
