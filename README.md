@@ -32,4 +32,4 @@ Open alipay-project-combine on the Android Studio.
 - [x] Support aidl
 - [x] Support buildConfigField on gradle
 - [x] Support `-exposed:` to exposed `groud_id` and `artifact_id`
-- [] Support drawable and mipmap
+- [] Support mipmap
