@@ -18,6 +18,20 @@ Combine multiple android projects on one Android Studio window.
 
 You need create `repos.conf` file on project root directory, and declare which repo you want to combine on it(one line one repo address).
 
+```yml
+# import FileDownloader porject
+git@github.com:lingochamp/FileDownloader.git
+# declare the FileDownloader exposed arr with groupId:artifactId
+- exposed: com.liulishuo.filedownloader:FileDownloader
+# declare ignore the module with its folder name 'demo'
+- ignore-module: demo
+# declare ignore the module with its folder name 'demo2'
+- ignore-module: demo2
+
+# import filedownloader okhttp3 connection project
+git@github.com:Jacksgong/filedownloader-okhttp3-connection.git
+```
+
 #### Step 2. Refresh env
 
 Execute `./refresh.sh` to refresh env
