@@ -16,4 +16,5 @@
 /conf
 *.pyc
 .settings
+.project
 /*.iml
