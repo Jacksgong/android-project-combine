@@ -24,7 +24,7 @@ You need create `repos.conf` file on project root directory, and declare which r
 # import FileDownloader porject
 git@github.com:lingochamp/FileDownloader.git
 # declare the FileDownloader exposed arr with groupId:artifactId
-- exposed: com.liulishuo.filedownloader:FileDownloader
+- exposed: com.liulishuo.filedownloader:library
 # declare ignore the module with its folder name 'demo'
 - ignore-module: demo
 # declare ignore the module with its folder name 'demo2'
