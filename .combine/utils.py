@@ -539,7 +539,7 @@ def generate_combine_manifest_file(parent_path, package_name):
 def generate_combine_gradle_file(project_path, combine_name):
     build_gradle_path = project_path + "/" + "build.gradle"
     build_gradle_file = open(build_gradle_path, "w+")
-    build_gradle_file.write("apply plugin: 'com.android.library'\n\n")
+    build_gradle_file.write("apply plugin: 'com.android.application'\n\n")
     build_gradle_file.write("apply from: '../../conf/" + combine_name + "-combine.gradle'\n")
     build_gradle_file.write("apply from: '../../.combine/combine-common.gradle'\n")
     build_gradle_file.close()
