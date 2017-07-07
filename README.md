@@ -32,7 +32,12 @@ git@github.com:lingochamp/FileDownloader.git
 
 # import filedownloader okhttp3 connection project
 git@github.com:Jacksgong/filedownloader-okhttp3-connection.git
+
+# import Demo project on ~/Downloads/Demo folder
+~/Downloads/Demo
 ```
+
+> As you can see above, we can recognize repos address and local absolute path.
 
 #### Step 2. Refresh env
 

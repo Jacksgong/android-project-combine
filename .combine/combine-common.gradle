@@ -17,7 +17,11 @@
 def toComponentPath(dirs) {
     def targetDirs = []
     for (dir in dirs) {
-        targetDirs.add("$componentDir$dir")
+        if (dir.startsWith('/')) {
+            targetDirs.add("$dir")
+        } else {
+            targetDirs.add("$componentDir$dir")
+        }
     }
 
     return targetDirs
