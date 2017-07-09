@@ -25,6 +25,9 @@ from xml.etree.ElementTree import parse
 
 __author__ = 'JacksGong'
 
+ROOT_PATH = ''
+REPOSITORIES_PATH = ROOT_PATH + 'repos/'
+
 
 def git(*args):
     return subprocess.check_call(['git'] + list(args))
@@ -114,13 +117,13 @@ def handle_repo_path(repo_candidate_path, repo_addr_list, repo_path_list, ignore
                        " right one must be: group_id:artifact_id")
             return False
         ignored_dependencies_list.append(generate_ignore_matcher(group_id, artifact_id))
-        print("find need exposed: " + group_id + ":" + artifact_id)
+        print("find exposed: " + group_id + ":" + artifact_id)
         return True
     elif repo_candidate_path.startswith('http') or repo_candidate_path.startswith('git'):
         last_repo.value = repo_candidate_path
         repo_addr_list.append(repo_candidate_path)
     elif repo_candidate_path.startswith('~') or repo_candidate_path.startswith('/') or repo_candidate_path.startswith(
-            '\\'):
+                    '\\') or repo_candidate_path.startswith(REPOSITORIES_PATH):
         local_path = handle_home_case(repo_candidate_path)
         if exists(local_path):
             last_repo.value = local_path
@@ -192,7 +195,7 @@ REPO_NAME_RE = re.compile(r'([^/]*)\.git')
 
 
 # clone repo if need.
-def process_clone_repo(repositories_path, repo_addr_list, target_path_list,
+def process_clone_repo(repo_addr_list, target_path_list,
                        ignore_modules_map, target_ignore_modules_list):
     # ignore module list
     for repo_path in target_path_list:
@@ -206,7 +209,7 @@ def process_clone_repo(repositories_path, repo_addr_list, target_path_list,
         re_name = REPO_NAME_RE.search(repo_addr)
         repo_folder_name = re_name.groups()[0]
 
-        repo_path = repositories_path + repo_folder_name
+        repo_path = REPOSITORIES_PATH + repo_folder_name
         if exists(repo_path):
             print_warn(
                 "because of the directory of " + repo_path + " has already existed, we will not clone it again.")

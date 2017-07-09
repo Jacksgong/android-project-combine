@@ -25,20 +25,18 @@ from utils import print_error, process_repos_conf, process_clone_repo, print_pro
     print_warn, scan_pom, generate_ignore_matcher, handle_process_dependencies, \
     deeper_source_path, generate_mock_res_modules, generate_build_config_fields_modules, generate_combine_conf_file, \
     generate_combine_manifest_file, generate_combine_gradle_file, generate_setting_gradle_file, scan_module, \
-    is_contain_multiple_modules
+    is_contain_multiple_modules, ROOT_PATH
 
 __author__ = 'JacksGong'
 __version__ = '1.0.0'
 __description__ = 'This python script used for combine several Android projects to one project.'
 
 # ../
-root_path = ''
 DEFAULT_COMBINE_NAME = 'dev'
 combine_name = DEFAULT_COMBINE_NAME
-repositories_path = root_path + 'repos/'
-repos_conf_path = root_path + 'repos.conf'
-combine_project_path = root_path + "combine/" + combine_name
-combine_conf_path = root_path + "conf"
+repos_conf_path = ROOT_PATH + 'repos.conf'
+combine_project_path = ROOT_PATH + "combine/" + combine_name
+combine_conf_path = ROOT_PATH + "conf"
 combine_gradle_path = combine_conf_path + "/" + combine_name + "-combine.gradle"
 ignored_dependencies_list = list()
 ignored_modules_list = list()
@@ -46,7 +44,7 @@ ignored_modules_list = list()
 print(chr(27) + "[2J")
 
 print("-------------------------------------------------------")
-print("Android Project Combine v1.0.0")
+print("Android Project Combine v1.0.1")
 print("-------------------------------------------------------")
 
 # combine_name = raw_input("Please input the name of the combine poject: ")
@@ -72,7 +70,7 @@ tmp_ignore_modules_map = {}
 # handle the conf file.
 process_repos_conf(conf_file_path, tmp_repo_addr_list, repo_path_list, ignored_dependencies_list, tmp_ignore_modules_map)
 # handle the repo address and get repo_path_list.
-process_clone_repo(repositories_path, tmp_repo_addr_list, repo_path_list, tmp_ignore_modules_map, ignored_modules_list)
+process_clone_repo(tmp_repo_addr_list, repo_path_list, tmp_ignore_modules_map, ignored_modules_list)
 # --------- now repos is ready on repo_path_list
 
 
@@ -159,6 +157,6 @@ generate_combine_gradle_file(combine_project_path, combine_name)
 
 # declare to the setting gradle
 print_process("declare to the setting gradle")
-generate_setting_gradle_file(root_path, combine_project_path, combine_name, mock_module_list)
+generate_setting_gradle_file(ROOT_PATH, combine_project_path, combine_name, mock_module_list)
 
 print_process("everything is ready, please open the combine project on AndroidStudio!")
