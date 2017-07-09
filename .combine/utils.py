@@ -123,7 +123,7 @@ def handle_repo_path(repo_candidate_path, repo_addr_list, repo_path_list, ignore
         last_repo.value = repo_candidate_path
         repo_addr_list.append(repo_candidate_path)
     elif repo_candidate_path.startswith('~') or repo_candidate_path.startswith('/') or repo_candidate_path.startswith(
-                    '\\') or repo_candidate_path.startswith(REPOSITORIES_PATH):
+            '\\') or repo_candidate_path.startswith(REPOSITORIES_PATH):
         local_path = handle_home_case(repo_candidate_path)
         if exists(local_path):
             last_repo.value = local_path
@@ -278,6 +278,52 @@ def search_regex(regex, value):
     return None
 
 
+EXT_KEY_VALUE1 = re.compile(r"(\w*) *= *(\".*\"|'.*')")
+EXT_KEY_VALUE2 = re.compile(r"(\w*) *= *(\d*)")
+EXT_KEY_VALUE3 = re.compile(r"(\w*) *= *(true|false)")
+EXT_SCOPE_BEGIN = re.compile(r'ext *{')
+
+
+def scan_ext_by_path(gradle_file_path, ext_map):
+    if not exists(gradle_file_path):
+        return
+
+    gradle_file = open(gradle_file_path, 'r')
+    scan_ext(gradle_file, ext_map)
+    gradle_file.close()
+
+
+def scan_ext(gradle_file, ext_map):
+    on_ext_area = False
+    for line in gradle_file:
+        line = line.strip()
+        if line.startswith('/'):
+            continue
+
+        if not on_ext_area and EXT_SCOPE_BEGIN.search(line) is not None:
+            on_ext_area = True
+            continue
+
+        if on_ext_area and line.startswith('}'):
+            break
+
+        if not on_ext_area:
+            continue
+
+        ext_key_value_re = EXT_KEY_VALUE1.search(line)
+        if ext_key_value_re is None:
+            ext_key_value_re = EXT_KEY_VALUE2.search(line)
+        if ext_key_value_re is None:
+            ext_key_value_re = EXT_KEY_VALUE3.search(line)
+
+        if ext_key_value_re is not None:
+            key, value = ext_key_value_re.groups()
+            ext_map[key] = value
+            print_process('find ext: ' + key + ' : ' + value)
+        else:
+            print_warn("we can't recognize the ext with '" + line + "', so we ignore it.")
+
+
 # get applicationId,groupId,artifactId,dependencies,build_config_fields
 GROUP_ID_RE = re.compile(r'group *= *"(.*) *"')
 ARTIFACT_ID_RE = re.compile(r'artifactId *= *"(.*) *"')
@@ -286,7 +332,7 @@ APPLICATION_ID_RE = re.compile(r'applicationId *["|\'](.*) *["|\']')
 BUILD_CONFIG_FIELD_RE = re.compile(r'buildConfigField *"(.*)" *, *"(.*)" *,')
 
 
-def scan_build_gradle(module_build_gradle_path):
+def scan_build_gradle(module_build_gradle_path, ext_map):
     application_id = None
     group_id = None
     artifact_id = None
@@ -301,6 +347,7 @@ def scan_build_gradle(module_build_gradle_path):
     in_dependencies = False
 
     gradle_file = open(module_build_gradle_path, 'r')
+    scan_ext(gradle_file, ext_map)
     for line in gradle_file:
         line = line.strip()
 
@@ -489,7 +536,7 @@ def handle_process_dependencies(process_dependencies_map, ignored_dependencies_l
 
 
 def generate_combine_conf_file(combine_name, combine_gradle_path,
-                               source_dirs, aidl_dirs, dependencies_list, res_module_name_list):
+                               source_dirs, aidl_dirs, dependencies_list, res_module_name_list, ext_map):
     combine_gradle_file = open(combine_gradle_path, "w+")
 
     combine_gradle_file.write("ext {\n")
@@ -514,7 +561,14 @@ def generate_combine_conf_file(combine_name, combine_gradle_path,
     # else:
     #     combine_gradle_file.write("    resDirs = ")
     #     combine_gradle_file.write(res_dirs.__str__())
-    combine_gradle_file.write("\n}")
+
+    if ext_map.__len__() > 0:
+        combine_gradle_file.write("\n    //following defined by user\n")
+
+    for ext_key in ext_map:
+        combine_gradle_file.write("    " + ext_key + " = " + ext_map[ext_key] + "\n")
+
+    combine_gradle_file.write("}")
 
     if (dependencies_list is not None and dependencies_list.__len__() > 0) or (
                 res_module_name_list.__len__() > 0):
@@ -665,7 +719,7 @@ def get_res_mock_module_name(combine_name, res_module_name):
 
 
 def scan_module(repo_path, module_dir_name, module_dir_path, pom_artifact_id, ignored_modules_list,
-                process_dependencies_map, build_config_fields, source_dirs, aidl_dirs, res_group_map):
+                process_dependencies_map, build_config_fields, source_dirs, aidl_dirs, res_group_map, ext_map):
     if not is_valid_gradle_folder(module_dir_name, module_dir_path):
         return
 
@@ -681,7 +735,7 @@ def scan_module(repo_path, module_dir_name, module_dir_path, pom_artifact_id, ig
     # R.xxx dependent on manifest application id.
     manifest_application_id = scan_manifest(get_default_manifest_path(module_dir_path))
     application_id, group_id, artifact_id, dependencies_list, per_build_config_fields = scan_build_gradle(
-        gradle_path)
+        gradle_path, ext_map)
     # handle dependencies.
     if dependencies_list is not None:
         for dependency_line in dependencies_list:

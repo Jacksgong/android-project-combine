@@ -25,7 +25,7 @@ from utils import print_error, process_repos_conf, process_clone_repo, print_pro
     print_warn, scan_pom, generate_ignore_matcher, handle_process_dependencies, \
     deeper_source_path, generate_mock_res_modules, generate_build_config_fields_modules, generate_combine_conf_file, \
     generate_combine_manifest_file, generate_combine_gradle_file, generate_setting_gradle_file, scan_module, \
-    is_contain_multiple_modules, ROOT_PATH
+    is_contain_multiple_modules, ROOT_PATH, scan_ext, scan_ext_by_path
 
 __author__ = 'JacksGong'
 __version__ = '1.0.0'
@@ -40,11 +40,12 @@ combine_conf_path = ROOT_PATH + "conf"
 combine_gradle_path = combine_conf_path + "/" + combine_name + "-combine.gradle"
 ignored_dependencies_list = list()
 ignored_modules_list = list()
+ext_map = {}
 
 print(chr(27) + "[2J")
 
 print("-------------------------------------------------------")
-print("Android Project Combine v1.0.1")
+print("Android Project Combine v1.0.2")
 print("-------------------------------------------------------")
 
 # combine_name = raw_input("Please input the name of the combine poject: ")
@@ -68,7 +69,8 @@ repo_path_list = list()
 # addr/path: [module]
 tmp_ignore_modules_map = {}
 # handle the conf file.
-process_repos_conf(conf_file_path, tmp_repo_addr_list, repo_path_list, ignored_dependencies_list, tmp_ignore_modules_map)
+process_repos_conf(conf_file_path, tmp_repo_addr_list, repo_path_list, ignored_dependencies_list,
+                   tmp_ignore_modules_map)
 # handle the repo address and get repo_path_list.
 process_clone_repo(tmp_repo_addr_list, repo_path_list, tmp_ignore_modules_map, ignored_modules_list)
 # --------- now repos is ready on repo_path_list
@@ -101,13 +103,16 @@ for repo_path in repo_path_list:
         # current project is just a module
         project_name = basename(normpath(project_path))
         scan_module(repo_path, project_name, project_path, pom_artifact_id, ignored_modules_list,
-                    process_dependencies_map, build_config_fields, source_dirs, aidl_dirs, res_group_map)
+                    process_dependencies_map, build_config_fields, source_dirs, aidl_dirs, res_group_map, ext_map)
         continue
+
+    project_gradle_file_path = project_path + '/' + 'build.gradle'
+    scan_ext_by_path(project_gradle_file_path, ext_map)
 
     for module_dir_name in listdir(project_path):
         module_dir_path = project_path + "/" + module_dir_name
         scan_module(repo_path, module_dir_name, module_dir_path, pom_artifact_id, ignored_modules_list,
-                    process_dependencies_map, build_config_fields, source_dirs, aidl_dirs, res_group_map)
+                    process_dependencies_map, build_config_fields, source_dirs, aidl_dirs, res_group_map, ext_map)
 
 final_dependencies_list = handle_process_dependencies(process_dependencies_map, ignored_dependencies_list)
 
@@ -144,7 +149,7 @@ mock_module_list.extend(build_config_fields_module_list)
 
 # generate combine conf file
 generate_combine_conf_file(combine_name, combine_gradle_path, source_dirs, aidl_dirs, final_dependencies_list,
-                           mock_module_list)
+                           mock_module_list, ext_map)
 
 # generate combine project
 print_process("generate combine project")
