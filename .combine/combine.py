@@ -46,7 +46,7 @@ ignored_modules_list = list()
 print(chr(27) + "[2J")
 
 print("-------------------------------------------------------")
-print("Android Project Combine v1.0.0-dev")
+print("Android Project Combine v1.0.0")
 print("-------------------------------------------------------")
 
 # combine_name = raw_input("Please input the name of the combine poject: ")

@@ -58,14 +58,14 @@ def print_warn(message):
 
 
 NO_HOME_PATH = re.compile(r'~/(.*)')
-home_path = environ['HOME']
+HOME_PATH = environ['HOME']
 
 
 # get the home case path
 def handle_home_case(path):
     path = path.strip()
     if path.startswith('~/'):
-        path = home_path + '/' + NO_HOME_PATH.match(path).groups()[0]
+        path = HOME_PATH + '/' + NO_HOME_PATH.match(path).groups()[0]
     return path
 
 
