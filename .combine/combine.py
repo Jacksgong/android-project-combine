@@ -25,7 +25,7 @@ from utils import print_error, process_repos_conf, process_clone_repo, print_pro
     print_warn, scan_pom, generate_ignore_matcher, handle_process_dependencies, \
     deeper_source_path, generate_mock_res_modules, generate_build_config_fields_modules, generate_combine_conf_file, \
     generate_combine_manifest_file, generate_combine_gradle_file, generate_setting_gradle_file, scan_module, \
-    is_contain_multiple_modules, ROOT_PATH, scan_ext, scan_ext_by_path
+    is_contain_multiple_modules, ROOT_PATH, scan_ext_by_path
 
 __author__ = 'JacksGong'
 __version__ = '1.0.0'
@@ -45,7 +45,7 @@ ext_map = {}
 print(chr(27) + "[2J")
 
 print("-------------------------------------------------------")
-print("Android Project Combine v1.0.2")
+print("Android Project Combine v1.0.3")
 print("-------------------------------------------------------")
 
 # combine_name = raw_input("Please input the name of the combine poject: ")

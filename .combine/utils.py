@@ -333,6 +333,7 @@ BUILD_CONFIG_FIELD_RE = re.compile(r'buildConfigField *"(.*)" *, *"(.*)" *,')
 
 
 def scan_build_gradle(module_build_gradle_path, ext_map):
+    print_process("scan build.gradle: " + module_build_gradle_path)
     application_id = None
     group_id = None
     artifact_id = None
@@ -347,7 +348,7 @@ def scan_build_gradle(module_build_gradle_path, ext_map):
     in_dependencies = False
 
     gradle_file = open(module_build_gradle_path, 'r')
-    scan_ext(gradle_file, ext_map)
+    scan_ext_by_path(module_build_gradle_path, ext_map)
     for line in gradle_file:
         line = line.strip()
 
@@ -378,8 +379,13 @@ def scan_build_gradle(module_build_gradle_path, ext_map):
                 continue
 
         if not in_dependencies and line.startswith('dependencies'):
+            in_android_area = False
+            in_default_config_area = False
             in_dependencies = True
-        elif in_dependencies:
+        elif in_dependencies and line.startswith('}'):
+            in_dependencies = False
+
+        if in_dependencies:
             dependencies.append(line)
 
     gradle_file.close()
@@ -407,9 +413,9 @@ def scan_manifest(manifest_path):
 
 
 # parse dependency line
-DEPENDENCY_RE1 = re.compile(r"(.*) '(.*):(.*):(.*):(.*)@(.*)'")
-DEPENDENCY_RE2 = re.compile(r"(.*) '(.*):(.*):(.*)@(.*)'")
-DEPENDENCY_RE3 = re.compile(r"(.*) '(.*):(.*):(.*)'")
+DEPENDENCY_RE1 = re.compile(r"(.*) [\"|'](.*):(.*):(.*):(.*)@(.*)[\"|']")
+DEPENDENCY_RE2 = re.compile(r"(.*) [\"|'](.*):(.*):(.*)@(.*)[\"|']")
+DEPENDENCY_RE3 = re.compile(r"(.*) [\"|'](.*):(.*):(.*)[\"|']")
 
 
 def parse_dependency_line(line):
@@ -423,25 +429,32 @@ def parse_dependency_line(line):
     suffix = "aar"
 
     while True:
+        if line.startswith('/') or line.startswith('dependencies'):
+            break
+
         dependency_result = DEPENDENCY_RE1.search(line)
         if dependency_result is not None:
             dp_type, group, artifact, version, artifact_type, suffix = dependency_result.groups()
+            print_process('find dependency with ' + group + ':' + artifact + ':' + version)
             break
 
         dependency_result = DEPENDENCY_RE2.search(line)
         if dependency_result is not None:
             dp_type, group, artifact, version, suffix = dependency_result.groups()
+            print_process('find dependency with ' + group + ':' + artifact + ':' + version)
             break
 
         dependency_result = DEPENDENCY_RE3.search(line)
         if dependency_result is not None:
             dp_type, group, artifact, version = dependency_result.groups()
+            print_process('find dependency with ' + group + ':' + artifact + ':' + version)
             break
         # dependency_result = dependency_project_re.search(line)
         # if dependency_result is not None:
         #     dependency_type, artifact = dependency_result.groups()
         #     dependencies_map['undefined' + artifact + 'arr'] = line
         #     break
+        print_warn("we can't recognize dependency format for '" + line + "', so we ignore it!")
         break
 
     return dp_type, group, artifact, version, artifact_type, suffix
@@ -460,6 +473,10 @@ def process_dependencies(process_dependencies_map, dependency_line):
     if dp_type != "provided" and dp_type != "compile" and dp_type != "debugCompile" and dp_type != "releaseCompile":
         # on current version we only handle provided and compile.
         return False
+
+    if version.startswith('$rootProject'):
+        dependency_line = dependency_line.replace("$rootProject.ext.", "$")
+        dependency_line = dependency_line.replace("$rootProject.", "$")
 
     key = group + artifact + suffix + artifact_type
 
@@ -727,10 +744,10 @@ def scan_module(repo_path, module_dir_name, module_dir_path, pom_artifact_id, ig
         print_warn("ignored " + module_dir_name + " on " + repo_path + " because of you declared on the repos.conf")
         return
     # on module folder.
+    print_process('scan module ' + module_dir_name)
 
     # scan gradle file.
     gradle_path = module_dir_path + "/build.gradle"
-    print_process("scan for " + gradle_path)
 
     # R.xxx dependent on manifest application id.
     manifest_application_id = scan_manifest(get_default_manifest_path(module_dir_path))
