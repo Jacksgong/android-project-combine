@@ -28,7 +28,7 @@ from utils import print_error, process_repos_conf, process_clone_repo, print_pro
     is_contain_multiple_modules, ROOT_PATH, scan_ext_by_path
 
 __author__ = 'JacksGong'
-__version__ = '1.0.0'
+__version__ = '1.0.4'
 __description__ = 'This python script used for combine several Android projects to one project.'
 
 # ../
@@ -45,7 +45,7 @@ ext_map = {}
 print(chr(27) + "[2J")
 
 print("-------------------------------------------------------")
-print("Android Project Combine v1.0.3")
+print("Android Project Combine v" + __version__)
 print("-------------------------------------------------------")
 
 # combine_name = raw_input("Please input the name of the combine poject: ")

@@ -310,11 +310,11 @@ def scan_ext(gradle_file, ext_map):
         if not on_ext_area:
             continue
 
-        ext_key_value_re = EXT_KEY_VALUE1.search(line)
+        ext_key_value_re = EXT_KEY_VALUE1.match(line)
         if ext_key_value_re is None:
-            ext_key_value_re = EXT_KEY_VALUE2.search(line)
+            ext_key_value_re = EXT_KEY_VALUE2.match(line)
         if ext_key_value_re is None:
-            ext_key_value_re = EXT_KEY_VALUE3.search(line)
+            ext_key_value_re = EXT_KEY_VALUE3.match(line)
 
         if ext_key_value_re is not None:
             key, value = ext_key_value_re.groups()
@@ -566,7 +566,7 @@ def generate_combine_conf_file(combine_name, combine_gradle_path,
     combine_gradle_file.write("\n")
 
     if aidl_dirs is None or aidl_dirs.__len__() <= 0:
-        combine_gradle_file.write("   aidlDirs  = null\n")
+        combine_gradle_file.write("    aidlDirs  = null\n")
     else:
         combine_gradle_file.write("    aidlDirs = ")
         combine_gradle_file.write(aidl_dirs.__str__())
@@ -583,6 +583,10 @@ def generate_combine_conf_file(combine_name, combine_gradle_path,
         combine_gradle_file.write("\n    //following defined by user\n")
 
     for ext_key in ext_map:
+        ext_value = ext_map[ext_key]
+        if ext_value == "":
+            print_warn("find the wrong ext with " + ext_key + " = " + ext_value + " so we ignore it!")
+            continue
         combine_gradle_file.write("    " + ext_key + " = " + ext_map[ext_key] + "\n")
 
     combine_gradle_file.write("}")
