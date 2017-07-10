@@ -6,6 +6,8 @@
 
 > [English](https://github.com/Jacksgong/android-project-combine)
 
+该框架在需要同时维护多个项目的时候尤为方便，特别如[Atlas的Bundle项目](https://github.com/alibaba/atlas)或者是我之前介绍的[大项目完全解藕项目中的各独立项目](https://blog.dreamtobe.cn/large-project-develop/)。
+
 ## 快速预览
 
 这里以协同开发[repos.templete.conf](https://github.com/Jacksgong/android-project-combine/blob/master/repos.templete.conf)中配置([FileDownloader](https://github.com/lingochamp/FileDownloader)与[filedownloader-okhttp3-connection](https://github.com/Jacksgong/filedownloader-okhttp3-connection)两个项目)为案例:
