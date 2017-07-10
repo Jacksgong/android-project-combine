@@ -118,7 +118,7 @@ Open android-project-combine on the Android Studio.
 - [x] Support mipmap
 - [x] Support `-ignore-module: [folder name]`
 - [x] Support recognize Absolute Local Path on 'repos.conf'
-- [x] Support dependencies version with 'ext' params declared on `build.gradle` file
+- [x] Support dependencies version with 'ext' params
 
 ## LICENSE
 
