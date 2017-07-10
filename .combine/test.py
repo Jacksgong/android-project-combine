@@ -19,6 +19,34 @@ limitations under the License.
 from shlex import shlex
 from ast import literal_eval
 
+from utils import EXT_KEY_VALUE1, EXT_KEY_VALUE2
+
+ext_case_1 = "IS_DEBUG_SYNC_EXECUTOR = false"
+ext_case_2 = "KEY2 = 'value2'"
+ext_case_3 = 'KEY3 = "value3"'
+
+ext_wrong_case = 'IS_DEBUG_SYNC_EXECUTOR = properties.getProperty("isDebugSyncExecutor", "false").toBoolean()'
+
+
+def test_ext_re():
+    key, value = EXT_KEY_VALUE2.match(ext_case_1).groups()
+    print key + ' : ' + value
+
+    key, value = EXT_KEY_VALUE1.match(ext_case_2).groups()
+    print key + ' : ' + value
+
+    key, value = EXT_KEY_VALUE1.match(ext_case_3).groups()
+    print key + ' : ' + value
+
+    if EXT_KEY_VALUE1.match(ext_wrong_case) is not None:
+        print "wrong match  EXT_KEY_VALUE1 " + ext_wrong_case
+
+    if EXT_KEY_VALUE2.match(ext_wrong_case) is not None:
+        print "wrong match  EXT_KEY_VALUE2" + ext_wrong_case
+
+
+test_ext_re()
+
 TRANSLATION = {
     "true": True,
     "false": False,
@@ -80,6 +108,5 @@ class GroovyConfigSlurper:
                 current[key[-1]] = value
                 state = 1
 
-
-with open("build.gradle", "r") as f:
-    print GroovyConfigSlurper(f).parse()
+# with open("build.gradle", "r") as f:
+#     print GroovyConfigSlurper(f).parse()

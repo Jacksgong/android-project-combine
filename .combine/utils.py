@@ -279,8 +279,7 @@ def search_regex(regex, value):
 
 
 EXT_KEY_VALUE1 = re.compile(r"(\w*) *= *(\".*\"|'.*')")
-EXT_KEY_VALUE2 = re.compile(r"(\w*) *= *(\d*)")
-EXT_KEY_VALUE3 = re.compile(r"(\w*) *= *(true|false)")
+EXT_KEY_VALUE2 = re.compile(r"(\w*) *= *(true|false)")
 EXT_SCOPE_BEGIN = re.compile(r'ext *{')
 
 
@@ -313,8 +312,6 @@ def scan_ext(gradle_file, ext_map):
         ext_key_value_re = EXT_KEY_VALUE1.match(line)
         if ext_key_value_re is None:
             ext_key_value_re = EXT_KEY_VALUE2.match(line)
-        if ext_key_value_re is None:
-            ext_key_value_re = EXT_KEY_VALUE3.match(line)
 
         if ext_key_value_re is not None:
             key, value = ext_key_value_re.groups()
