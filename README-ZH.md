@@ -108,6 +108,7 @@ git@github.com:Jacksgong/filedownloader-okhttp3-connection.git
 ├── local                          // 本地的module，你可以在这里做一些定制的事情，该module的'src/'、'res/'、'libs/'均没有加入版本管理
 │   ├── AndroidManifest.xml        
 │   ├── build.gradle               
+│   ├── local-build.gradle         // 【需要你添加】本地的buld.gradle文件，用于需要添加一些特殊的配置(如需要依赖一些库不希望刷新后被清理的)
 │   ├── build                   
 │   └── .gitignore                 // 我们在版本管理中忽略了本地module的'src/'、'res/'、'libs/'
 ├── refresh.sh                     // 你可以使用这个脚本去刷新并且更新combine项目环境

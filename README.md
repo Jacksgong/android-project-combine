@@ -95,6 +95,7 @@ Open android-project-combine on the Android Studio.
 ├── local                          // local module folder, you can do some customzie on this local module
 │   ├── AndroidManifest.xml        
 │   ├── build.gradle               
+│   ├── local-build.gradle         // [added by you]you can declare some persist the dependencies on here
 │   └── .gitignore                 // we ignored 'src/', 'res/', 'libs/' on local module, so you can do anything you like clearly
 ├── refresh.sh                     // you can use this shell script to clean and update combine env safely
 ├── repos                          // store all projects you declared on 'repos.conf' , we don't change anything on this folder and ignored this folder on '.gitignore', so please feel free to maintain your projects on it
