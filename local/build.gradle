@@ -24,4 +24,8 @@ dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
 }
 
+def localBuild = new File("local-build.gradle")
+if (localBuild.exists()) {
+    apply from: "local-build.gradle"
+}
 
