@@ -32,9 +32,19 @@ Following is the demonstrate to maintain `filedownloader-okhttp3-connection` on 
 
 ## HOW TO USE?
 
-#### Step 1. Create `repos.conf` File
+#### Step 1. Clone This Repo
 
-> P.S. You can refer to `/repos.templete.conf`
+First of all, you need clone this repo, and enter the repo folder which is your work place now, simply way is:
+
+```shell
+git clone git@github.com:Jacksgong/android-project-combine.git && cd android-project-combine
+```
+
+So following steps are working on the repo folder.
+
+#### Step 2. Create `repos.conf` File
+
+> P.S. You can refer to `./repos.templete.conf`
 
 You need create `repos.conf` file on project root directory, and declare which repo you want to combine on it(one line one repo address).
 
@@ -57,7 +67,7 @@ git@github.com:Jacksgong/filedownloader-okhttp3-connection.git
 
 > As you can see above, we can recognize repos address and local absolute path.
 
-#### Step 2. Refresh env
+#### Step 3. Refresh env
 
 Execute `./refresh.sh` to refresh env
 

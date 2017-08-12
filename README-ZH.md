@@ -39,7 +39,17 @@
 
 ## 如何使用呢?
 
-#### 第一步. 创建`repos.conf`文件
+#### 第一步. Clone这个项目 
+
+首先，你需要clone这个项目，然后进入这个项目目录作为你的工作环境，最简单的方法:
+
+```shell
+git clone git@github.com:Jacksgong/android-project-combine.git && cd android-project-combine
+```
+
+这样，接下来所有的操作都是在这个项目目录下进行。
+
+#### 第二步. 创建`repos.conf`文件
 
 > P.S. 你可以直接参考`/repos.templete.conf`
 
@@ -64,7 +74,7 @@ git@github.com:Jacksgong/filedownloader-okhttp3-connection.git
 
 > 正如你看到的，我们能够识别仓库地址以及本地绝对路径。
 
-#### 第二步. 刷新Combine项目环境
+#### 第三步. 刷新Combine项目环境
 
 执行`./refresh.sh`来刷新即可。
 
