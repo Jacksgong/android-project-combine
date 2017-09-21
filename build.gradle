@@ -23,11 +23,7 @@ def repositories = rootProject.file("repositories.gradle")
 if (repositories.exists()) {
     apply from: repositories.getCanonicalPath()
 } else {
-    allprojects {
-        repositories {
-            jcenter()
-        }
-    }
+    apply from: rootProject.file("repositories-default.gradle").getCanonicalPath()
 }
 
 
