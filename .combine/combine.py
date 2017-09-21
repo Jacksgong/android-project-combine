@@ -28,7 +28,7 @@ from helper import print_error, process_repos_conf, process_clone_repo, print_pr
     is_contain_multiple_modules, ROOT_PATH, scan_ext_by_path, process_dep_version_conf
 
 __author__ = 'JacksGong'
-__version__ = '1.0.5'
+__version__ = '1.0.6'
 __description__ = 'This python script used for combine several Android projects to one project.'
 
 # ../
