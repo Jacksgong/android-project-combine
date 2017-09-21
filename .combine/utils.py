@@ -615,8 +615,8 @@ def generate_combine_gradle_file(project_path, combine_name):
     build_gradle_path = project_path + "/" + "build.gradle"
     build_gradle_file = open(build_gradle_path, "w+")
     build_gradle_file.write("apply plugin: 'com.android.application'\n\n")
-    build_gradle_file.write("apply from: '../../conf/" + combine_name + "-combine.gradle'\n")
-    build_gradle_file.write("apply from: '../../.combine/combine-common.gradle'\n")
+    build_gradle_file.write("apply from: rootProject.file('conf/" + combine_name + "-combine.gradle').getCanonicalPath()\n")
+    build_gradle_file.write("apply from: rootProject.file('gradle/combine-common.gradle').getCanonicalPath()\n")
     build_gradle_file.close()
 
 
@@ -666,7 +666,7 @@ def generate_mock_module(project_path, module_name, package_name, build_config_f
     build_gradle_file.write("ext {\n")
     build_gradle_file.write("    javaDirs = null")
     build_gradle_file.write("\n}")
-    build_gradle_file.write("\napply from: '../../../.combine/combine-res-common.gradle'\n")
+    build_gradle_file.write("\napply from: rootProject.file('gradle/combine-res-common.gradle').getCanonicalPath()\n")
     build_gradle_file.close()
 
 

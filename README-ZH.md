@@ -98,11 +98,13 @@ git@github.com:Jacksgong/filedownloader-okhttp3-connection.git
 .
 ├── .combine                       // combine python 脚本目录
 │   ├── combine.py                 // 用户扫描所有用户项目以及生成combine项目
-│   ├── combine-common.gradle      // 公用的combine项目gradle脚本
-│   ├── combine-res-common.gradle  // 公用的模拟的资源module的gradle脚本
-│   ├── res_generator.py           // 扫描所有用户项目以及生成模拟的资源module  
+│   ├── res_generator.py           // 扫描所有用户项目以及生成模拟的资源module
 │   ├── res_utils.py               // 'res_generator.py'的工具集合
 │   └── utils.py                   // 'combine.py'的工具集合
+├── gradle                         // gradle 脚本目录
+│   ├── repositories-default.gradle// 默认的仓库地址配置
+│   ├── combine-common.gradle      // 公用的combine项目gradle脚本
+│   └── combine-res-common.gradle  // 公用的模拟的资源module的gradle脚本
 ├── .gitignore                     // 我们在版本管理中忽略了'repos.conf'、'repos/'、'conf/'、'combine/'、'combine-settings.gradle'
 ├── clean.sh                       // 你可以使用这个脚本去清理combine项目的环境
 ├── combine                        // 【由refresh.sh生成】 自动生成的combine项目以及所有模拟的资源项目
@@ -130,7 +132,7 @@ git@github.com:Jacksgong/filedownloader-okhttp3-connection.git
 │   ├── ...                        // 你的项目...
 │   └── [your-project-n]           // 你的项目n
 ├── repos.conf                     // 【需要你添加】申明需要一起开发的项目(一行一个项目地址)
-├── repositories.gradle            // 【需要你添加】你可以通过创建'repositories.gradle'文件来申明仓库
+├── repositories.gradle            // 【你可以添加】你可以通过创建'repositories.gradle'文件来申明仓库
 ├── repos.templete.conf            // 'repos.conf'的demo
 └── settings.gradle                // 包含了'local'module以及'combine-settings.gradle'的settings.gradle脚本
 ```
