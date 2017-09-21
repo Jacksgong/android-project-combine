@@ -21,7 +21,7 @@ from os.path import exists, basename, normpath
 from sys import argv
 
 from res_generator import CombineResGenerator
-from utils import print_error, process_repos_conf, process_clone_repo, print_process, process_gradle_project_path, \
+from helper import print_error, process_repos_conf, process_clone_repo, print_process, process_gradle_project_path, \
     print_warn, scan_pom, generate_ignore_matcher, handle_process_dependencies, \
     deeper_source_path, generate_mock_res_modules, generate_build_config_fields_modules, generate_combine_conf_file, \
     generate_combine_manifest_file, generate_combine_gradle_file, generate_setting_gradle_file, scan_module, \
