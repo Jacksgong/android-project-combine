@@ -200,6 +200,10 @@ class CombineResGenerator:
                         r_public_xml = Element('resources')
 
                 for r_name in r_name_list:
+
+                    if r_name == 'class':
+                        continue
+
                     if r_type == "id":
                         print 'add to ids.xml ' + r_name
                         SubElement(r_id_xml, "item", name=r_name, type="id")
