@@ -131,6 +131,7 @@ Open android-project-combine on the Android Studio.
 - [x] Support `-ignore-module: [folder name]`
 - [x] Support recognize Absolute Local Path on 'repos.conf'
 - [x] Support dependencies version with 'ext' params
+- [] Support force replace some dependencies library version automatically
 
 ## LICENSE
 
