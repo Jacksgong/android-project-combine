@@ -130,6 +130,7 @@ git@github.com:Jacksgong/filedownloader-okhttp3-connection.git
 │   ├── ...                        // 你的项目...
 │   └── [your-project-n]           // 你的项目n
 ├── repos.conf                     // 【需要你添加】申明需要一起开发的项目(一行一个项目地址)
+├── repositories.gradle            // 【需要你添加】你可以通过创建'repositories.gradle'文件来申明仓库
 ├── repos.templete.conf            // 'repos.conf'的demo
 └── settings.gradle                // 包含了'local'module以及'combine-settings.gradle'的settings.gradle脚本
 ```

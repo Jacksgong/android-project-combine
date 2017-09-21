@@ -19,13 +19,18 @@ buildscript {
     }
 }
 
-allprojects {
-    repositories {
-        mavenLocal()
-        mavenCentral()
-        jcenter()
+def repositories = rootProject.file("repositories.gradle")
+if (repositories.exists()) {
+    apply from: repositories.getCanonicalPath()
+} else {
+    allprojects {
+        repositories {
+            jcenter()
+        }
     }
 }
+
+
 
 task clean(type: Delete) {
     delete rootProject.buildDir

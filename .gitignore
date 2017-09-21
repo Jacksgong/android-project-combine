@@ -13,6 +13,7 @@
 /repos.conf
 /combine
 /combine-settings.gradle
+/repositories.gradle
 /conf
 *.pyc
 .settings
