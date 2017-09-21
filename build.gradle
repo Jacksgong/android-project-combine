@@ -22,13 +22,6 @@ buildscript {
 allprojects {
     repositories {
         mavenLocal()
-        maven {
-            credentials {
-                username "admin"
-                password "**"
-            }
-            url "http://mvn.test.alipay.net:8081/artifactory/content/groups/alipay-mobile"
-        }
         mavenCentral()
         jcenter()
     }
