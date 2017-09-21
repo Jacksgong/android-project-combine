@@ -96,45 +96,47 @@ git@github.com:Jacksgong/filedownloader-okhttp3-connection.git
 
 ```
 .
-├── .combine                       // combine python 脚本目录
-│   ├── combine.py                 // 用户扫描所有用户项目以及生成combine项目
-│   ├── res_generator.py           // 扫描所有用户项目以及生成模拟的资源module
-│   ├── res_utils.py               // 'res_generator.py'的工具集合
-│   └── utils.py                   // 'combine.py'的工具集合
-├── gradle                         // gradle 脚本目录
-│   ├── repositories-default.gradle// 默认的仓库地址配置
-│   ├── combine-common.gradle      // 公用的combine项目gradle脚本
-│   └── combine-res-common.gradle  // 公用的模拟的资源module的gradle脚本
-├── .gitignore                     // 我们在版本管理中忽略了'repos.conf'、'repos/'、'conf/'、'combine/'、'combine-settings.gradle'
-├── clean.sh                       // 你可以使用这个脚本去清理combine项目的环境
-├── combine                        // 【由refresh.sh生成】 自动生成的combine项目以及所有模拟的资源项目
-│   └── dev                        // 【由refresh.sh生成】 自动生成的名为'dev'的combine项目
+├── .combine                          // combine python 脚本目录
+│   ├── combine.py                    // 用户扫描所有用户项目以及生成combine项目
+│   ├── res_generator.py              // 扫描所有用户项目以及生成模拟的资源module
+│   ├── res_utils.py                  // 'res_generator.py'的工具集合
+│   └── utils.py                      // 'combine.py'的工具集合
+├── gradle                            // gradle 脚本目录
+│   ├── repositories-default.gradle   // 默认的仓库地址配置
+│   ├── combine-common.gradle         // 公用的combine项目gradle脚本
+│   └── combine-res-common.gradle     // 公用的模拟的资源module的gradle脚本
+├── .gitignore                        // 我们在版本管理中忽略了'repos.conf'、'repos/'、'conf/'、'combine/'、'combine-settings.gradle'
+├── clean.sh                          // 你可以使用这个脚本去清理combine项目的环境
+├── combine                           // 【由refresh.sh生成】 自动生成的combine项目以及所有模拟的资源项目
+│   └── dev                           // 【由refresh.sh生成】 自动生成的名为'dev'的combine项目
 │        ├── AndroidManifest.xml   
 │        ├── build.gradle          
-│        ├── [mock-res-module1]    // 自动生成的资源module1
-│        ├── ...                   // 自动生成的资源module...
-│        └── [mock-res-modulen]    // 自动生成的资源modulen
-├── combine-settings.gradle        // 【由refresh.sh生成】申明需要包含哪些module，该gradle脚本被settings.gradle引用
-├── conf                           // 【由refresh.sh生成】申明自动生成的combine项目的各类特性的配置 
-│   └── dev-combine.gradle         // 【由refresh.sh生成】申明名为'dev'的combine项目的各类特性配置，你可以通过编辑这个文件来解决一些未覆盖的异常
-├── local                          // 本地的module，你可以在这里做一些定制的事情，该module的'src/'、'res/'、'libs/'均没有加入版本管理
+│        ├── [mock-res-module1]       // 自动生成的资源module1
+│        ├── ...                      // 自动生成的资源module...
+│        └── [mock-res-modulen]       // 自动生成的资源modulen
+├── combine-settings.gradle           // 【由refresh.sh生成】申明需要包含哪些module，该gradle脚本被settings.gradle引用
+├── conf                              // 【由refresh.sh生成】申明自动生成的combine项目的各类特性的配置 
+│   └── dev-combine.gradle            // 【由refresh.sh生成】申明名为'dev'的combine项目的各类特性配置，你可以通过编辑这个文件来解决一些未覆盖的异常
+├── local                             // 本地的module，你可以在这里做一些定制的事情，该module的'src/'、'res/'、'libs/'均没有加入版本管理
 │   ├── AndroidManifest.xml        
 │   ├── build.gradle               
-│   ├── local-build.gradle         // 【需要你添加】本地的buld.gradle文件，用于需要添加一些特殊的配置(如需要依赖一些库不希望刷新后被清理的)
+│   ├── local-build.gradle            // 【需要你添加】本地的buld.gradle文件，用于需要添加一些特殊的配置(如需要依赖一些库不希望刷新后被清理的)
 │   ├── build                   
-│   └── .gitignore                 // 我们在版本管理中忽略了本地module的'src/'、'res/'、'libs/'
-├── refresh.sh                     // 你可以使用这个脚本去刷新并且更新combine项目环境
-├── repos                          // 存储所有你在'repos.conf'定义的项目, 我们不会修改或删除这个目录下的任何文件，该目录也没有被加入我们的版本管理，因此你可以放心的在里面维护你的项目
-│   ├── [your-project-1]           // 你的项目1
+│   └── .gitignore                    // 我们在版本管理中忽略了本地module的'src/'、'res/'、'libs/'
+├── refresh.sh                        // 你可以使用这个脚本去刷新并且更新combine项目环境
+├── repos                             // 存储所有你在'repos.conf'定义的项目, 我们不会修改或删除这个目录下的任何文件，该目录也没有被加入我们的版本管理，因此你可以放心的在里面维护你的项目
+│   ├── [your-project-1]              // 你的项目1
 │   |   ├── [project-1-module-1]
 │   |   └── [project-1-module-2]
-│   ├── [your-project-2]           // 你的项目2
-│   ├── ...                        // 你的项目...
-│   └── [your-project-n]           // 你的项目n
-├── repos.conf                     // 【需要你添加】申明需要一起开发的项目(一行一个项目地址)
-├── repositories.gradle            // 【你可以添加】你可以通过创建'repositories.gradle'文件来申明仓库
-├── repos.templete.conf            // 'repos.conf'的demo
-└── settings.gradle                // 包含了'local'module以及'combine-settings.gradle'的settings.gradle脚本
+│   ├── [your-project-2]              // 你的项目2
+│   ├── ...                           // 你的项目...
+│   └── [your-project-n]              // 你的项目n
+├── repos.conf                        // 【需要你添加】申明需要一起开发的项目(一行一个项目地址)
+├── repos.templete.conf               // 'repos.conf'的demo
+├── dependencies-version.conf         // 【你可以添加】 declared which dependencies version you want to force replace
+├── dependencies-version.templete.conf// 'dependencies-version.conf'的demo
+├── repositories.gradle               // 【你可以添加】你可以通过创建'repositories.gradle'文件来申明仓库
+└── settings.gradle                   // 包含了'local'module以及'combine-settings.gradle'的settings.gradle脚本
 ```
 
 ## LICENSE

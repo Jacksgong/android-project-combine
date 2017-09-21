@@ -25,7 +25,7 @@ from helper import print_error, process_repos_conf, process_clone_repo, print_pr
     print_warn, scan_pom, generate_ignore_matcher, handle_process_dependencies, \
     deeper_source_path, generate_mock_res_modules, generate_build_config_fields_modules, generate_combine_conf_file, \
     generate_combine_manifest_file, generate_combine_gradle_file, generate_setting_gradle_file, scan_module, \
-    is_contain_multiple_modules, ROOT_PATH, scan_ext_by_path
+    is_contain_multiple_modules, ROOT_PATH, scan_ext_by_path, process_dep_version_conf
 
 __author__ = 'JacksGong'
 __version__ = '1.0.5'
@@ -65,9 +65,11 @@ else:
 
 tmp_repo_addr_list = list()
 repo_path_list = list()
+dep_version_map = {}
 
 # addr/path: [module]
 tmp_ignore_modules_map = {}
+process_dep_version_conf('dependencies-version.conf', dep_version_map)
 # handle the conf file.
 process_repos_conf(conf_file_path, tmp_repo_addr_list, repo_path_list, ignored_dependencies_list,
                    tmp_ignore_modules_map)
@@ -103,7 +105,8 @@ for repo_path in repo_path_list:
         # current project is just a module
         project_name = basename(normpath(project_path))
         scan_module(repo_path, project_name, project_path, pom_artifact_id, ignored_modules_list,
-                    process_dependencies_map, build_config_fields, source_dirs, aidl_dirs, res_group_map, ext_map)
+                    process_dependencies_map, dep_version_map, build_config_fields, source_dirs, aidl_dirs,
+                    res_group_map, ext_map)
         continue
 
     project_gradle_file_path = project_path + '/' + 'build.gradle'
@@ -112,7 +115,8 @@ for repo_path in repo_path_list:
     for module_dir_name in listdir(project_path):
         module_dir_path = project_path + "/" + module_dir_name
         scan_module(repo_path, module_dir_name, module_dir_path, pom_artifact_id, ignored_modules_list,
-                    process_dependencies_map, build_config_fields, source_dirs, aidl_dirs, res_group_map, ext_map)
+                    process_dependencies_map, dep_version_map, build_config_fields, source_dirs, aidl_dirs,
+                    res_group_map, ext_map)
 
 final_dependencies_list = handle_process_dependencies(process_dependencies_map, ignored_dependencies_list)
 

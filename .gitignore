@@ -11,6 +11,7 @@
 /captures
 /repos
 /repos.conf
+/dependencies-version.conf
 /combine
 /combine-settings.gradle
 /repositories.gradle

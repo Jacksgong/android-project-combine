@@ -191,6 +191,28 @@ def process_repos_conf(conf_path, repo_addr_list, repo_path_list, ignored_depend
                                  ignored_modules_map, last_repo)
 
 
+REPO_VERSION_RE = re.compile(r"'(\S*)' *: *'(\S*)'")
+
+
+def process_dep_version_conf(conf_path, dep_version_map):
+    if not exists(conf_path):
+        return
+
+    conf_file = open(conf_path, "r")
+    for line in conf_file:
+        line = line.strip()
+        if line == '' or line[0] == '#':
+            continue
+        matched = REPO_VERSION_RE.match(line)
+        if matched is None:
+            print_warn('wrong line on dependencies version configure file: ' + line)
+            continue
+        else:
+            dep, version = matched.groups()
+            print_process('find dependencies version: [%s] with [%s]' % (dep, version))
+            dep_version_map[dep] = version
+
+
 REPO_NAME_RE = re.compile(r'([^/]*)\.git')
 
 
@@ -457,7 +479,7 @@ def parse_dependency_line(line):
     return dp_type, group, artifact, version, artifact_type, suffix
 
 
-def process_dependencies(process_dependencies_map, dependency_line):
+def process_dependencies(process_dependencies_map, dependency_line, dep_version_map):
     dp_type, group, artifact, version, artifact_type, suffix = parse_dependency_line(dependency_line)
     if dp_type is None:
         return False
@@ -474,6 +496,12 @@ def process_dependencies(process_dependencies_map, dependency_line):
     if version.startswith('$rootProject'):
         dependency_line = dependency_line.replace("$rootProject.ext.", "$")
         dependency_line = dependency_line.replace("$rootProject.", "$")
+
+    f_version_key = '%s:%s' % (group, artifact)
+    if f_version_key in dep_version_map:
+        f_version = dep_version_map[f_version_key]
+        print_process('force to using %s version for %s', f_version, f_version_key)
+        dependency_line = dependency_line.replace(version, f_version)
 
     key = group + artifact + suffix + artifact_type
 
@@ -615,7 +643,8 @@ def generate_combine_gradle_file(project_path, combine_name):
     build_gradle_path = project_path + "/" + "build.gradle"
     build_gradle_file = open(build_gradle_path, "w+")
     build_gradle_file.write("apply plugin: 'com.android.application'\n\n")
-    build_gradle_file.write("apply from: rootProject.file('conf/" + combine_name + "-combine.gradle').getCanonicalPath()\n")
+    build_gradle_file.write(
+        "apply from: rootProject.file('conf/" + combine_name + "-combine.gradle').getCanonicalPath()\n")
     build_gradle_file.write("apply from: rootProject.file('gradle/combine-common.gradle').getCanonicalPath()\n")
     build_gradle_file.close()
 
@@ -737,7 +766,8 @@ def get_res_mock_module_name(combine_name, res_module_name):
 
 
 def scan_module(repo_path, module_dir_name, module_dir_path, pom_artifact_id, ignored_modules_list,
-                process_dependencies_map, build_config_fields, source_dirs, aidl_dirs, res_group_map, ext_map):
+                process_dependencies_map, dep_version_map, build_config_fields, source_dirs, aidl_dirs, res_group_map,
+                ext_map):
     if not is_valid_gradle_folder(module_dir_name, module_dir_path):
         return
 
@@ -757,7 +787,7 @@ def scan_module(repo_path, module_dir_name, module_dir_path, pom_artifact_id, ig
     # handle dependencies.
     if dependencies_list is not None:
         for dependency_line in dependencies_list:
-            process_dependencies(process_dependencies_map, dependency_line)
+            process_dependencies(process_dependencies_map, dependency_line, dep_version_map)
 
     # handle build config field
     build_group_id = application_id
