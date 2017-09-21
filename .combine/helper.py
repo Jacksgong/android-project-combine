@@ -500,7 +500,7 @@ def process_dependencies(process_dependencies_map, dependency_line, dep_version_
     f_version_key = '%s:%s' % (group, artifact)
     if f_version_key in dep_version_map:
         f_version = dep_version_map[f_version_key]
-        print_process('force to using %s version for %s', f_version, f_version_key)
+        print_process('force to using %s version for %s' % (f_version, f_version_key))
         dependency_line = dependency_line.replace(version, f_version)
 
     key = group + artifact + suffix + artifact_type
