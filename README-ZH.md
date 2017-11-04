@@ -80,7 +80,7 @@ git@github.com:Jacksgong/filedownloader-okhttp3-connection.git
 
 ![](https://github.com/Jacksgong/arts/raw/master/android-project-combine/refresh-demo.gif)
 
-#### 第三步. 在Android Studio中打开
+#### 第四步. 在Android Studio中打开
 
 重新在Android Studio中打开android-project-combine即可。
 
@@ -90,7 +90,8 @@ git@github.com:Jacksgong/filedownloader-okhttp3-connection.git
 
 1. 我们不会修改`/repos`目录下的任何文件，因此请放心的维护在`/repos`下面的各种项目；并且`/combine`、`/repos`、`/conf`、`/combine-settings.gradle`、`/repos.conf` 也不会加入到我们的版本管理，因此本地的添加或修改自动生成的combine项目也不会影响`android-project-combine`仓库的版本迭代。
 2. 如果切换分支或者引用资源，建议重新执行`./refresh.sh`来更新本地combine环境来刷新资源引用
-3. 欢迎大家试用，有任何问题，欢迎提ISSUE，提PR~ 让你多项目维护更加简单!
+3. 如果国内下载对应gradle慢，可以考虑在根目录`build.gradle`文件里面的`buildscript{ repositories {`下一行`jcenter()`上一行添加`maven{ url 'http://maven.aliyun.com/nexus/content/groups/public/'}`，以使用阿里的镜像
+4. 欢迎大家试用，有任何问题，欢迎提ISSUE，提PR~ 让你多项目维护更加简单!
 
 ## 目录结构 
 
